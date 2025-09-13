@@ -59,6 +59,33 @@
         Tip: Drag cards to reorder days. Click <em>Edit</em> on a card to rename, change image URL or color, or delete.
       </p>
     </section>
+    <!-- Edit Modal -->
+<div id="edit-modal" class="modal hidden" aria-hidden="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-panel">
+    <h3 style="margin:0 0 8px">Edit day</h3>
+    <form id="edit-form">
+      <div class="row">
+        <label>Title</label>
+        <input id="edit-title" type="text" placeholder="Recipe title" />
+      </div>
+      <div class="row">
+        <label>Image URL</label>
+        <input id="edit-image" type="url" placeholder="https://…" />
+      </div>
+      <div class="row">
+        <label>Card color</label>
+        <input id="edit-color" type="color" value="#f9fafb" />
+      </div>
+      <div class="row" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button type="button" id="edit-delete" class="btn alt small">Delete</button>
+        <button type="button" id="edit-cancel" class="btn alt small">Cancel</button>
+        <button type="submit" class="btn small">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
   </main>
 
   <footer class="wrap footer">
