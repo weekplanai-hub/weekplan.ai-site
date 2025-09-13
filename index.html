@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weekplan.ai — Custom Allergy-Friendly Meal Plans</title>
+  <meta name="description" content="AI-built weekly meal plans and recipes tailored to your allergies, goals, and tastes." />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="/assets/favicon.png" />
+</head>
+<body>
+  <header class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/">Weekplan<span>.ai</span></a>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+        <a class="btn small" href="/weekplan.html">Log in</a>
+      </div>
+    </nav>
+
+    <section class="hero two-col">
+      <div>
+        <h1>Allergy-friendly meal plans, <em>just for you.</em></h1>
+        <p class="sub">Tell us your allergens, goals, and tastes. Our AI builds a 7-day plan with recipes you can drag, drop, and tweak in seconds.</p>
+        <div class="cta-row">
+          <a class="btn" href="/weekplan.html">Start free</a>
+          <a class="btn alt" href="#features">See features</a>
+        </div>
+        <ul class="badges">
+          <li>Gluten-free</li><li>Dairy-free</li><li>Nut-free</li><li>Egg-free</li><li>Vegan options</li>
+        </ul>
+      </div>
+      <div class="hero-img">
+        <img src="/assets/hero-placeholder.jpg" alt="Week plan preview" />
+      </div>
+    </section>
+  </header>
+
+  <main class="wrap">
+    <section id="features" class="card">
+      <h2>Why Weekplan.ai</h2>
+      <ul class="feature-grid">
+        <li>
+          <img src="/assets/feature1.jpg" alt="">
+          <h3>Personalized to your needs</h3>
+          <p>Allergens, goals, time, budget—every plan is built around you.</p>
+        </li>
+        <li>
+          <img src="/assets/feature2.jpg" alt="">
+          <h3>Drag & drop planner</h3>
+          <p>Swap, edit, or remove meals with one click. Your grocery list updates instantly.</p>
+        </li>
+        <li>
+          <img src="/assets/feature3.jpg" alt="">
+          <h3>Family-friendly recipes</h3>
+          <p>Curated, quick, and tasty recipes with allergy tags and prep times.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="how" class="card">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><strong>Tell us your allergens</strong> (e.g., gluten, dairy, nuts) and goals.</li>
+        <li><strong>Generate a plan</strong> (7 meals with images and instructions).</li>
+        <li><strong>Drag, drop, and edit</strong> until it’s perfect—then export or share.</li>
+      </ol>
+    </section>
+
+    <section id="pricing" class="card">
+      <h2>Pricing</h2>
+      <div class="price-grid">
+        <div class="tile">
+          <h3>Free</h3>
+          <p>Generate plans, drag & drop, save one active plan.</p>
+          <p class="big">$0</p>
+          <a class="btn" href="/weekplan.html">Start</a>
+        </div>
+        <div class="tile">
+          <h3>Plus</h3>
+          <p>Multiple saved plans, favorites, and premium recipes.</p>
+          <p class="big">$5 / mo</p>
+          <a class="btn alt" href="/weekplan.html">Try it</a>
+        </div>
+      </div>
+      <p class="muted">We’re in open alpha—pricing may change; early users keep early pricing.</p>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <small>© <span id="y"></span> Weekplan.ai</small>
+  </footer>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
