@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>API Manager — Weekplan.ai</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .io { display:grid; grid-template-columns:1fr 1fr; gap:12px }
+    @media (max-width:900px){ .io{ grid-template-columns:1fr } }
+    textarea { width:100%; min-height:240px; padding:12px; border:1px solid var(--border); border-radius:12px; font-family:ui-monospace,monospace; }
+    pre { background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:12px; min-height:240px; overflow:auto }
+    .row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; align-items:end }
+    .row input, .row select { padding:10px; border:1px solid var(--border); border-radius:12px; width:100% }
+    small code { background:#eef2f7; padding:2px 6px; border-radius:6px }
+  </style>
+</head>
+<body>
+<header class="wrap">
+  <nav class="nav">
+    <a class="brand" href="/">Weekplan<span>.ai</span></a>
+    <div class="links">
+      <a class="btn small" href="/ai-recipe-planner.html">AI Oppskriftsgenerator</a>
+      <a class="btn small alt" href="/weekplan.html">Ukeplan</a>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>API Manager</h2>
+    <p class="muted">Test OpenRouter eller OpenAI raskt. Lagre nøkkel lokalt i nettleseren.</p>
+
+    <div class="row" style="margin:12px 0">
+      <div>
+        <label>Provider</label>
+        <select id="provider">
+          <option value="openrouter" selected>OpenRouter</option>
+          <option value="openai">OpenAI</option>
+        </select>
+      </div>
+      <div>
+        <label>API-nøkkel</label>
+        <input id="apiKey" type="password" placeholder="Lim inn API key">
+      </div>
+      <div>
+        <label>Modell</label>
+        <input id="model" type="text" value="nvidia/nemotron-nano-9b-v2:free">
+        <small class="muted">OpenAI eksempel: <code>gpt-4o-mini</code></small>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button id="saveKey" class="btn small">Lagre nøkkel</button>
+      <button id="loadKey" class="btn small alt">Hent nøkkel</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Playground</h3>
+    <div class="io">
+      <div>
+        <label>Input</label>
+        <textarea id="input">
+Skriv 3 raske, allergivennlige middagsidéer (glutenfri, melkefri). Bruk punktliste.
+        </textarea>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button id="send" class="btn">Send</button>
+          <button id="demo" class="btn alt">Demo</button>
+          <span id="status" class="muted" aria-live="polite"></span>
+        </div>
+      </div>
+      <div>
+        <label>Output</label>
+        <pre id="output">(ingen svar ennå)</pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap footer">
+  <small>© <span id="y"></span> Weekplan.ai</small>
+</footer>
+
+<script>
+document.getElementById('y').textContent = new Date().getFullYear();
+
+const KEY_STORE = 'weekplan_api_key';
+const providerEl = document.getElementById('provider');
+const keyEl = document.getElementById('apiKey');
+const modelEl = document.getElementById('model');
+const inputEl = document.getElementById('input');
+const outputEl = document.getElementById('output');
+const statusEl = document.getElementById('status');
+
+document.getElementById('saveKey').addEventListener('click',()=>{
+  if (!keyEl.value.trim()) return setStatus('Tom nøkkel', 'error');
+  localStorage.setItem(KEY_STORE, keyEl.value.trim());
+  setStatus('Nøkkel lagret', 'ok');
+});
+document.getElementById('loadKey').addEventListener('click',()=>{
+  const v = localStorage.getItem(KEY_STORE) || '';
+  keyEl.value = v;
+  setStatus(v ? 'Nøkkel lastet' : 'Ingen lagret nøkkel', v ? 'ok' : 'error');
+});
+
+document.getElementById('demo').addEventListener('click',()=>{
+  inputEl.value = 'Lag en kort, vennlig beskrivelse av Weekplan.ai på 2 setninger.';
+  setStatus('Demo lastet', 'ok');
+});
+document.getElementById('send').addEventListener('click', async ()=>{
+  const apiKey = keyEl.value.trim();
+  const model  = modelEl.value.trim();
+  const prompt = inputEl.value.trim();
+  if (!apiKey) return setStatus('Mangler API-nøkkel', 'error');
+  if (!model)  return setStatus('Mangler modell', 'error');
+  if (!prompt) return setStatus('Mangler input', 'error');
+
+  setStatus('Sender …', 'loading');
+  outputEl.textContent = '(venter på svar …)';
+
+  try{
+    const text = await callModel(providerEl.value, apiKey, model, prompt);
+    outputEl.textContent = text || '(tomt svar)';
+    setStatus('OK', 'ok');
+  }catch(e){
+    outputEl.textContent = 'Feil: ' + (e.message || String(e));
+    setStatus('Feil', 'error');
+  }
+});
+
+function setStatus(msg, type){
+  statusEl.textContent = msg;
+  statusEl.style.color = type==='error' ? '#ef4444' : (type==='loading' ? '#1a73e8' : '#16a34a');
+}
+
+async function callModel(provider, apiKey, model, prompt){
+  if (provider === 'openrouter') {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${apiKey}`,
+        'HTTP-Referer': location.origin,
+        'X-Title': 'Weekplan API Manager'
+      },
+      body: JSON.stringify({
+        model,
+        messages:[
+          { role:'system', content:'Du er en hjelpsom assistent som svarer på norsk.' },
+          { role:'user', content: prompt }
+        ]
+      })
+    });
+    if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || '';
+  } else if (provider === 'openai') {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','Authorization':`Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages:[
+          { role:'system', content:'Du er en hjelpsom assistent som svarer på norsk.' },
+          { role:'user', content: prompt }
+        ]
+      })
+    });
+    if (!res.ok) throw new Error(`OpenAI ${res.status}`);
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || '';
+  }
+  throw new Error('Ukjent provider');
+}
+</script>
+</body>
+</html>
