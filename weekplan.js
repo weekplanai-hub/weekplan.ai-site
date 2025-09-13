@@ -76,7 +76,7 @@
   function renderWeek() {
     const byDow = new Map(items.map(it => [it.dow, it]));
     gridEl.innerHTML = DAYS.map((d, i) => {
-      const it = byDow.get(i) || { dow:i, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb' };
+      const it = byDow.get(i) || { dow:i, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'' };
       return cardHTML(d, it);
     }).join('');
     attachDnD();
@@ -85,15 +85,15 @@
 
   function cardHTML(label, it) {
     return `
-      <div class="tile" data-dow="${it.dow}" style="background:${it.color || '#f9fafb'}">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div class="tile" data-dow="${it.dow}" style="background:${it.color || ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
           <strong>${label}</strong>
           <div style="display:flex;gap:6px;align-items:center">
             <button class="btn small" data-edit="${it.dow}" style="background:transparent;color:var(--text);border:1px solid var(--border)">Edit</button>
-            <span class="handle" title="Drag" style="cursor:move;opacity:.6">↕</span>
+            <span class="handle" title="Drag">↕</span>
           </div>
         </div>
-        <img src="${it.image_url}" alt="" style="width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #eef2f7;background:#f3f4f6">
+        <img src="${it.image_url}" alt="" />
         <div style="min-height:40px">${escapeHtml(it.title || '')}</div>
       </div>
     `;
@@ -116,12 +116,6 @@
     });
   }
 
-  function attachEdit() {
-    gridEl.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.addEventListener('click', () => openEdit(+btn.dataset.edit));
-    });
-  }
-
   function swapDow(a, b) {
     const ia = items.findIndex(x=>x.dow===a);
     const ib = items.findIndex(x=>x.dow===b);
@@ -129,51 +123,53 @@
     if (ib>=0) items[ib].dow = a;
   }
 
+  // ====== MODAL EDITOR ======
+  const modal = document.getElementById('edit-modal');
+  const fTitle = document.getElementById('edit-title');
+  const fImage = document.getElementById('edit-image');
+  const fColor = document.getElementById('edit-color');
+  const btnDelete = document.getElementById('edit-delete');
+  const btnCancel = document.getElementById('edit-cancel');
+  let editingDow = null;
+
+  function showModal(){ modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false'); }
+  function hideModal(){ modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true'); editingDow=null; }
+
+  btnCancel?.addEventListener('click', hideModal);
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal || e.target.classList.contains('modal-backdrop')) hideModal(); });
+
+  document.getElementById('edit-form')?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    if (editingDow==null) return;
+    setItem(editingDow, { title: fTitle.value.trim(), image_url: fImage.value.trim(), color: fColor.value });
+    hideModal(); renderWeek();
+  });
+
+  btnDelete?.addEventListener('click', ()=>{
+    if (editingDow==null) return;
+    items = items.filter(x=>x.dow!==editingDow);
+    hideModal(); renderWeek();
+  });
+
   function openEdit(dow) {
-    const it = items.find(x=>x.dow===dow) || { dow, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb' };
-    const choice = prompt(
-`Rediger dag ${DAYS[dow]}:
-1) Endre tittel
-2) Endre bilde (URL)
-3) Endre farge (#hex)
-4) Slett
-5) Bytt oppskrift (skriv ny tittel)`, '1'
-    );
-    if (!choice) return;
-    switch (choice.trim()) {
-      case '1': {
-        const t = prompt('Ny tittel:', it.title || '');
-        if (t !== null) setItem(dow, { title: t });
-        break;
-      }
-      case '2': {
-        const u = prompt('Bilde-URL:', it.image_url || '');
-        if (u !== null) setItem(dow, { image_url: u });
-        break;
-      }
-      case '3': {
-        const c = prompt('Kortfarge (hex):', it.color || '#f9fafb');
-        if (c !== null) setItem(dow, { color: c });
-        break;
-      }
-      case '4': {
-        items = items.filter(x=>x.dow!==dow);
-        break;
-      }
-      case '5': {
-        const t = prompt('Ny rett (tittel):', it.title || '');
-        if (t !== null) setItem(dow, { title: t, image_url: 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop' });
-        break;
-      }
-      default: break;
-    }
-    renderWeek();
+    editingDow = dow;
+    const it = items.find(x=>x.dow===dow) || { title:'', image_url:'', color:'' };
+    fTitle.value = it.title || '';
+    fImage.value = it.image_url || '';
+    fColor.value = (it.color && /^#([0-9a-f]{3}){1,2}$/i.test(it.color)) ? it.color : '#f9fafb';
+    showModal();
+  }
+
+  function attachEdit() {
+    gridEl.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => openEdit(+btn.dataset.edit));
+    });
   }
 
   function setItem(dow, patch) {
     const i = items.findIndex(x=>x.dow===dow);
     if (i>=0) items[i] = { ...items[i], ...patch };
-    else items.push({ dow, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb', ...patch });
+    else items.push({ dow, title:'', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb', ...patch });
   }
 
   // ===== SAVE / LOAD =====
@@ -223,12 +219,11 @@
       "https://images.unsplash.com/photo-1543352634-11a8e2d3d6c4?q=80&w=600&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop"
     ];
-
     items = DAYS.map((_, i) => ({
       dow: i,
       title: demoTitles[i % demoTitles.length],
       image_url: demoImages[i % demoImages.length],
-      color: '#f9fafb'
+      color: ''
     }));
     renderWeek();
   });
