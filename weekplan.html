@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weekplan.ai — Your Meal Plan</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="/supabase.js" defer></script>
+  <script src="/weekplan.js" defer></script>
+</head>
+<body>
+  <header class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/">Weekplan<span>.ai</span></a>
+      <div class="links">
+        <button id="logout-btn" class="btn small hidden">Log out</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Login form -->
+    <section id="auth-section" class="card">
+      <h2>Log in</h2>
+      <p class="muted">Sign up or log in to save your weekly meal plans.</p>
+      <div style="max-width:320px">
+        <input type="email" id="email" placeholder="Email" style="margin:6px 0;width:100%">
+        <input type="password" id="password" placeholder="Password" style="margin:6px 0;width:100%">
+        <button class="btn" id="login-btn" style="width:100%">Log in / Sign up</button>
+        <p id="auth-status" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- Planner -->
+    <section id="planner-section" class="card hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h2>My Week Plan</h2>
+        <div>
+          <button id="generate-btn" class="btn small">Generate AI Plan</button>
+          <button id="save-btn" class="btn small">Save</button>
+        </div>
+      </div>
+
+      <div id="week-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px"></div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <small>© <span id="y"></span> Weekplan.ai</small>
+  </footer>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
