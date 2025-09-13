@@ -4,8 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Weekplan.ai — Your Meal Plan</title>
+
+  <!-- Shared styles -->
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Supabase client -->
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
+
+  <!-- Your app scripts -->
   <script src="/supabase.js" defer></script>
   <script src="/weekplan.js" defer></script>
 </head>
@@ -14,21 +20,22 @@
     <nav class="nav">
       <a class="brand" href="/">Weekplan<span>.ai</span></a>
       <div class="links">
+        <a href="/ai-recipe-planner.html">AI Recipes</a>
         <button id="logout-btn" class="btn small hidden">Log out</button>
       </div>
     </nav>
   </header>
 
   <main class="wrap">
-    <!-- Login form -->
+    <!-- Auth -->
     <section id="auth-section" class="card">
       <h2>Log in</h2>
       <p class="muted">Sign up or log in to save your weekly meal plans.</p>
-      <div style="max-width:320px">
-        <input type="email" id="email" placeholder="Email" style="margin:6px 0;width:100%">
-        <input type="password" id="password" placeholder="Password" style="margin:6px 0;width:100%">
+      <div style="max-width:360px">
+        <input type="email" id="email" placeholder="Email" style="margin:6px 0;width:100%" />
+        <input type="password" id="password" placeholder="Password" style="margin:6px 0;width:100%" />
         <button class="btn" id="login-btn" style="width:100%">Log in / Sign up</button>
-        <p id="auth-status" class="muted"></p>
+        <p id="auth-status" class="muted" style="min-height:1.4em;margin:8px 0 0"></p>
       </div>
     </section>
 
@@ -36,13 +43,21 @@
     <section id="planner-section" class="card hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
         <h2>My Week Plan</h2>
-        <div>
-          <button id="generate-btn" class="btn small">Generate AI Plan</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn small alt" href="/ai-recipe-planner.html">Open AI Generator</a>
+          <button id="generate-btn" class="btn small">Generate Demo Plan</button>
           <button id="save-btn" class="btn small">Save</button>
         </div>
       </div>
 
-      <div id="week-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px"></div>
+      <!-- 7-day grid gets rendered by weekplan.js -->
+      <div id="week-grid"
+           style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px">
+      </div>
+
+      <p class="muted" style="margin-top:10px">
+        Tip: Drag cards to reorder days. Click <em>Edit</em> on a card to rename, change image URL or color, or delete.
+      </p>
     </section>
   </main>
 
