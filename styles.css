@@ -288,3 +288,23 @@ section[id], .card{scroll-margin-top:80px}
 /* helpful if the API output includes wide content */
 #grid, .ai-results { overflow: hidden; }
 
+/* Planner cards use the Library look */
+.planner-top{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:8px; padding:8px 12px 0 12px;
+}
+.planner-card img{ height:160px } /* keep a bit shorter than library */
+.planner-card .rc-body{ padding:12px }
+
+/* Make whole card draggable cursor (except buttons) */
+.planner-card{ cursor: grab }
+.planner-card .no-drag, .planner-card button, .planner-card a { cursor: default }
+
+/* Mobile: put hamburger on same line as logo */
+@media (max-width: 768px){
+  .nav{ display:flex; flex-direction:row; align-items:center; }
+  .brand{ flex:1 }
+  .menu-toggle{ display:block; margin-left:auto }
+  .links{ display:none }
+}
+
