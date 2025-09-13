@@ -76,40 +76,72 @@
   function renderWeek() {
     const byDow = new Map(items.map(it => [it.dow, it]));
     gridEl.innerHTML = DAYS.map((d, i) => {
-      const it = byDow.get(i) || { dow:i, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'' };
+      const it = byDow.get(i) || {
+        dow:i,
+        title:'(empty)',
+        image_url:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop',
+        color:''
+      };
       return cardHTML(d, it);
     }).join('');
     attachDnD();
     attachEdit();
   }
 
+  // Planner card markup — styled like Library recipe cards
   function cardHTML(label, it) {
+    const style = it.color ? `style="background:${it.color}"` : '';
     return `
-      <div class="tile" data-dow="${it.dow}" style="background:${it.color || ''}">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="tile recipe-card planner-card" data-dow="${it.dow}" ${style}>
+        <div class="planner-top">
           <strong>${label}</strong>
-          <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn small" data-edit="${it.dow}" style="background:transparent;color:var(--text);border:1px solid var(--border)">Edit</button>
-            <span class="handle" title="Drag">↕</span>
-          </div>
+          <button class="btn small alt no-drag" data-edit="${it.dow}">Edit</button>
         </div>
-        <img src="${it.image_url}" alt="" />
-        <div style="min-height:40px">${escapeHtml(it.title || '')}</div>
+        <img src="${it.image_url}" alt="">
+        <div class="rc-body">
+          <h3>${escapeHtml(it.title || '(empty)')}</h3>
+        </div>
       </div>
     `;
   }
 
+  // ===== DRAG & DROP =====
   function attachDnD() {
+    const tiles = Array.from(gridEl.querySelectorAll('.tile'));
+
     let dragEl = null;
-    Array.from(gridEl.children).forEach(el => {
-      el.draggable = true;
-      el.addEventListener('dragstart', () => { dragEl = el; el.style.opacity = .5; });
-      el.addEventListener('dragend',   () => { if (dragEl) dragEl.style.opacity = 1; dragEl = null; });
-      el.addEventListener('dragover',  (e) => e.preventDefault());
-      el.addEventListener('drop',      (e) => {
+
+    tiles.forEach(el => {
+      // allow dragging the WHOLE card except interactive controls
+      const setDraggableFromEvent = (target) => {
+        const isControl = target.closest('button, a, input, textarea, select, label, .no-drag');
+        el.draggable = !isControl;
+      };
+
+      el.addEventListener('mousedown', (e) => setDraggableFromEvent(e.target));
+      el.addEventListener('touchstart', (e) => setDraggableFromEvent(e.target), { passive: true });
+
+      el.addEventListener('dragstart', (e) => {
+        if (!el.draggable) { e.preventDefault(); return; }
+        dragEl = el;
+        el.style.opacity = .5;
+        // transfer needed for Firefox
+        try { e.dataTransfer.setData('text/plain', el.dataset.dow); } catch {}
+      });
+
+      el.addEventListener('dragend', () => {
+        if (dragEl) dragEl.style.opacity = 1;
+        dragEl = null;
+        el.draggable = false; // reset for next interaction
+      });
+
+      el.addEventListener('dragover', (e) => e.preventDefault());
+
+      el.addEventListener('drop', (e) => {
         e.preventDefault();
         if (!dragEl || dragEl === el) return;
-        const a = +dragEl.dataset.dow, b = +el.dataset.dow;
+        const a = +dragEl.dataset.dow;
+        const b = +el.dataset.dow;
         swapDow(a, b);
         renderWeek();
       });
@@ -141,7 +173,11 @@
   document.getElementById('edit-form')?.addEventListener('submit', (e)=>{
     e.preventDefault();
     if (editingDow==null) return;
-    setItem(editingDow, { title: fTitle.value.trim(), image_url: fImage.value.trim(), color: fColor.value });
+    setItem(editingDow, {
+      title: fTitle.value.trim(),
+      image_url: fImage.value.trim(),
+      color: fColor.value
+    });
     hideModal(); renderWeek();
   });
 
@@ -162,14 +198,23 @@
 
   function attachEdit() {
     gridEl.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.addEventListener('click', () => openEdit(+btn.dataset.edit));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEdit(+btn.dataset.edit);
+      });
     });
   }
 
   function setItem(dow, patch) {
     const i = items.findIndex(x=>x.dow===dow);
     if (i>=0) items[i] = { ...items[i], ...patch };
-    else items.push({ dow, title:'', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb', ...patch });
+    else items.push({
+      dow,
+      title:'',
+      image_url:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop',
+      color:'#f9fafb',
+      ...patch
+    });
   }
 
   // ===== SAVE / LOAD =====
@@ -212,12 +257,13 @@
       'Roasted Cauli Bowls'
     ];
     const demoImages = [
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1617196037304-9a851b1cfa2c?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1506086679525-9d3a8e4d1f04?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1543352634-11a8e2d3d6c4?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1617196037304-9a851b1cfa2c?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1506086679525-9d3a8e4d1f04?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1543352634-11a8e2d3d6c4?q=80&w=800&auto=format&fit=crop"
     ];
     items = DAYS.map((_, i) => ({
       dow: i,
@@ -234,7 +280,10 @@
     const empty = findFirstEmptyDow();
     const dow = empty ?? askDow();
     if (dow == null) return;
-    setItem(dow, { title: r.title || 'Oppskrift', image_url: r.image || 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop' });
+    setItem(dow, {
+      title: r.title || 'Oppskrift',
+      image_url: r.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop'
+    });
     renderWeek();
   });
 
