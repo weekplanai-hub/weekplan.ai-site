@@ -18,7 +18,6 @@
 
   // ----- Planner state in memory
   let planId = null;
-  // items: array of { dow, title, image_url, color }
   let items = [];
 
   // ===== AUTH =====
@@ -44,7 +43,6 @@
     }
     loginBtn.disabled = true;
     setAuthStatus('Logger inn …');
-    // Try sign in, fallback to sign up
     let { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) {
       const res = await sb.auth.signUp({ email, password });
@@ -76,10 +74,9 @@
 
   // ===== RENDER =====
   function renderWeek() {
-    // Normalize array: ensure we have 7 positions
     const byDow = new Map(items.map(it => [it.dow, it]));
     gridEl.innerHTML = DAYS.map((d, i) => {
-      const it = byDow.get(i) || { dow:i, title:'(empty)', image_url:'/assets/placeholder.jpg', color:'#f9fafb' };
+      const it = byDow.get(i) || { dow:i, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb' };
       return cardHTML(d, it);
     }).join('');
     attachDnD();
@@ -96,7 +93,7 @@
             <span class="handle" title="Drag" style="cursor:move;opacity:.6">↕</span>
           </div>
         </div>
-        <img src="${it.image_url || '/assets/placeholder.jpg'}" alt="" style="width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #eef2f7;background:#f3f4f6">
+        <img src="${it.image_url}" alt="" style="width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #eef2f7;background:#f3f4f6">
         <div style="min-height:40px">${escapeHtml(it.title || '')}</div>
       </div>
     `;
@@ -133,7 +130,7 @@
   }
 
   function openEdit(dow) {
-    const it = items.find(x=>x.dow===dow) || { dow, title:'(empty)', image_url:'/assets/placeholder.jpg', color:'#f9fafb' };
+    const it = items.find(x=>x.dow===dow) || { dow, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb' };
     const choice = prompt(
 `Rediger dag ${DAYS[dow]}:
 1) Endre tittel
@@ -165,7 +162,7 @@
       }
       case '5': {
         const t = prompt('Ny rett (tittel):', it.title || '');
-        if (t !== null) setItem(dow, { title: t, image_url: '/assets/placeholder.jpg' });
+        if (t !== null) setItem(dow, { title: t, image_url: 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop' });
         break;
       }
       default: break;
@@ -176,12 +173,11 @@
   function setItem(dow, patch) {
     const i = items.findIndex(x=>x.dow===dow);
     if (i>=0) items[i] = { ...items[i], ...patch };
-    else items.push({ dow, title:'(empty)', image_url:'/assets/placeholder.jpg', color:'#f9fafb', ...patch });
+    else items.push({ dow, title:'(empty)', image_url:'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop', color:'#f9fafb', ...patch });
   }
 
   // ===== SAVE / LOAD =====
   async function loadOrCreatePlan() {
-    // Get latest plan or create one
     const { data: plans, error } = await sb.from('plans').select('*').order('created_at', { ascending: false }).limit(1);
     if (error) { console.error(error); return; }
     if (plans && plans.length) {
@@ -192,7 +188,6 @@
       if (e2) { console.error(e2); return; }
       planId = ins.id;
     }
-    // load items
     const { data: its, error: e3 } = await sb.from('plan_items').select('*').eq('plan_id', planId);
     if (e3) { console.error(e3); return; }
     items = (its || []).map(r => ({ dow: r.dow, title: r.title, image_url: r.image_url, color: r.color }));
@@ -204,45 +199,52 @@
     const rows = items.map(it => ({
       plan_id: planId, dow: it.dow, title: it.title, image_url: it.image_url, color: it.color
     }));
-    // Simple approach: clear + insert
     await sb.from('plan_items').delete().eq('plan_id', planId);
     const { error } = await sb.from('plan_items').insert(rows);
     if (error) alert(error.message); else alert('Lagret!');
   });
 
-  // ===== GENERATE (demo) & AI hook =====
+  // ===== GENERATE (Demo with Unsplash) =====
   genBtn?.addEventListener('click', () => {
-    // Quick demo data (you can replace with AI flow)
-    const demo = [
-      'Coconut Lentil Curry','Chicken & Quinoa','Veggie Pasta (GF)','Salmon Traybake',
-      'Chickpea Tabbouleh','Turkey Lettuce Wraps','Roasted Cauli Bowls'
+    const demoTitles = [
+      'Coconut Lentil Curry',
+      'Chicken & Quinoa',
+      'Veggie Pasta (GF)',
+      'Salmon Traybake',
+      'Chickpea Tabbouleh',
+      'Turkey Lettuce Wraps',
+      'Roasted Cauli Bowls'
     ];
+    const demoImages = [
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1617196037304-9a851b1cfa2c?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1506086679525-9d3a8e4d1f04?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1543352634-11a8e2d3d6c4?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600&auto=format&fit=crop"
+    ];
+
     items = DAYS.map((_, i) => ({
       dow: i,
-      title: demo[i % demo.length],
-      image_url: `/assets/r${(i%6)+1}.jpg`,
+      title: demoTitles[i % demoTitles.length],
+      image_url: demoImages[i % demoImages.length],
       color: '#f9fafb'
     }));
     renderWeek();
-    // Optional: open AI generator page in a new tab
-    // window.open('/ai-recipe-planner.html','_blank');
   });
 
-  // Listen for recipes coming from AI page (if used)
+  // ===== Recipe event from AI page =====
   window.addEventListener('recipe:selected', (e) => {
     const r = e.detail || {};
-    // Choose target day: first empty or ask for index
     const empty = findFirstEmptyDow();
     const dow = empty ?? askDow();
     if (dow == null) return;
-    setItem(dow, { title: r.title || 'Oppskrift', image_url: r.image || '/assets/placeholder.jpg' });
+    setItem(dow, { title: r.title || 'Oppskrift', image_url: r.image || 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=600&auto=format&fit=crop' });
     renderWeek();
   });
 
   function findFirstEmptyDow() {
-    for (let i=0;i<7;i++){
-      if (!items.find(x=>x.dow===i)) return i;
-    }
+    for (let i=0;i<7;i++){ if (!items.find(x=>x.dow===i)) return i; }
     return null;
   }
   function askDow() {
@@ -252,14 +254,11 @@
     return (n>=0 && n<=6) ? n : null;
   }
 
-  // ===== UTIL =====
   function escapeHtml(s){
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  // Kickstart: show current session state
   (async () => {
     const { data:{ session } } = await sb.auth.getSession();
     toggleAuthUI(!!session?.user, session?.user?.email || '');
@@ -267,7 +266,7 @@
       await ensureProfile(session.user);
       await loadOrCreatePlan();
     } else {
-      renderWeek(); // empty grid
+      renderWeek();
     }
   })();
 })();
