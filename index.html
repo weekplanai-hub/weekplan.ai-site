@@ -13,6 +13,7 @@
   <header class="wrap">
     <nav class="nav">
       <a class="brand" href="/">Weekplan<span>.ai</span></a>
+      <button class="menu-toggle" aria-label="Open menu">☰</button>
       <div class="links">
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
@@ -20,13 +21,20 @@
         <a class="login-btn" href="/weekplan.html">Log in</a>
       </div>
     </nav>
+    <!-- mobile dropdown -->
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a class="login-btn" href="/weekplan.html">Log in</a>
+    </div>
   </header>
 
   <main class="wrap">
-    <!-- HERO (no longer inside header so it scrolls naturally) -->
+    <!-- HERO -->
     <section class="hero two-col" id="home">
       <div>
-        <h1><span id="rot-word" class="rot">Allergy-friendly</span> meal plans, <em>just for you.</em></h1>
+        <h1><span id="rot-word" class="rot" style="color:#2563eb">Allergy-friendly</span> meal plans, <em>just for you.</em></h1>
         <p class="sub">Tell us your allergens, goals, and tastes. Our AI builds a 7-day plan with recipes you can drag, drop, and tweak in seconds.</p>
         <div class="cta-row" style="display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn" href="/weekplan.html">Start free</a>
@@ -45,6 +53,7 @@
       </div>
     </section>
 
+    <!-- FEATURES -->
     <section id="features" class="card">
       <h2>Why Weekplan.ai</h2>
       <ul class="feature-grid">
@@ -54,18 +63,61 @@
           <p>Allergens, goals, time, budget—every plan is built around you.</p>
         </li>
         <li>
-          <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=800&auto=format&fit=crop" alt="">
+          <!-- updated image -->
+          <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop" alt="">
           <h3>Drag & drop planner</h3>
           <p>Swap, edit, or remove meals with one click. Your grocery list updates instantly.</p>
         </li>
         <li>
-          <img src="https://images.unsplash.com/photo-1601050690597-3f7bcf03f9a0?q=80&w=800&auto=format&fit=crop" alt="">
+          <!-- updated image -->
+          <img src="https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?q=80&w=800&auto=format&fit=crop" alt="">
           <h3>Family-friendly recipes</h3>
           <p>Curated, quick, and tasty recipes with allergy tags and prep times.</p>
         </li>
       </ul>
     </section>
 
+    <!-- LIBRARY -->
+    <section id="library" class="card library">
+      <div class="lib-head">
+        <div>
+          <h2>Recipe library</h2>
+          <p class="muted">Build your own <strong>cookbooks</strong> and <strong>collections</strong>, rate community recipes, and save your adjusted versions. Your favorites appear here and in the planner.</p>
+        </div>
+        <div class="lib-actions">
+          <input id="search" type="search" placeholder="Search recipes…" />
+          <a class="btn small" href="/ai-recipe-planner.html">Generate with AI</a>
+        </div>
+      </div>
+
+      <div class="lib-layout">
+        <!-- Sidebar -->
+        <aside class="side">
+          <h4>Categories</h4>
+          <ul id="cat-list" class="cat-list">
+            <!-- filled by JS -->
+          </ul>
+
+          <h4>Your space</h4>
+          <ul class="quick">
+            <li><button class="pill" data-view="all">All recipes</button></li>
+            <li><button class="pill" data-view="favorites">Favorites</button></li>
+            <li><button class="pill" data-view="mine">Your adjusted</button></li>
+          </ul>
+          <p class="muted" style="font-size:13px">Sign in to sync your library cross-device.</p>
+        </aside>
+
+        <!-- Grid -->
+        <div class="lib-main">
+          <div id="results-count" class="muted" style="margin-bottom:8px"></div>
+          <div id="recipes" class="recipes-grid">
+            <!-- cards via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW -->
     <section id="how" class="card">
       <h2>How it works</h2>
       <ol class="steps">
@@ -75,6 +127,7 @@
       </ol>
     </section>
 
+    <!-- PRICING -->
     <section id="pricing" class="card">
       <h2>Pricing</h2>
       <div class="price-grid">
@@ -99,25 +152,168 @@
     <small>© <span id="y"></span> Weekplan.ai</small>
   </footer>
 
-  <!-- Scripts: year & rotating word -->
+  <!-- Scripts -->
   <script>
-    // footer year
+    // year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // rotating hero word
-    const words = ["Allergy-friendly","Fitness","Weightloss","Family","Budget","High-protein"];
+    // mobile menu
+    const mm = document.getElementById('mobile-menu');
+    document.querySelector('.menu-toggle').addEventListener('click', () => {
+      mm.classList.toggle('open');
+    });
+
+    // rotating hero word with colors
+    const rotWords = [
+      { text: "Allergy-friendly", color: "#2563eb" },
+      { text: "Fitness",          color: "#16a34a" },
+      { text: "Weightloss",       color: "#f59e0b" },
+      { text: "Family",           color: "#ef4444" },
+      { text: "Budget",           color: "#0ea5e9" },
+      { text: "High-protein",     color: "#9333ea" }
+    ];
     const rot = document.getElementById('rot-word');
-    let i = 0;
+    let ri = 0;
     setInterval(()=>{
       rot.classList.add('fade-out');
       setTimeout(()=>{
-        i = (i+1) % words.length;
-        rot.textContent = words[i];
+        ri = (ri+1) % rotWords.length;
+        rot.textContent = rotWords[ri].text;
+        rot.style.color = rotWords[ri].color;
         rot.classList.remove('fade-out');
         rot.classList.add('fade-in');
         setTimeout(()=>rot.classList.remove('fade-in'), 350);
       }, 250);
     }, 2200);
+
+    // ---------- Library demo data + UI ----------
+    const demo = [
+      {id:'r1',  title:'Mediterranean Quinoa Salad', cats:['salad','gluten-free','vegetarian'], rating:4, mine:false, img:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop'},
+      {id:'r2',  title:'Creamy Tomato Pasta (GF)',   cats:['pasta','gluten-free','quick'],     rating:5, mine:true,  img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop'},
+      {id:'r3',  title:'Coconut Lentil Curry',       cats:['curry','vegan','budget'],          rating:5, mine:false, img:'https://images.unsplash.com/photo-1617196037304-9a851b1cfa2c?q=80&w=800&auto=format&fit=crop'},
+      {id:'r4',  title:'Salmon Traybake',            cats:['fish','family','quick'],           rating:4, mine:false, img:'https://images.unsplash.com/photo-1506086679525-9d3a8e4d1f04?q=80&w=800&auto=format&fit=crop'},
+      {id:'r5',  title:'Chickpea Tabbouleh',         cats:['salad','vegan','budget'],          rating:4, mine:true,  img:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop'},
+      {id:'r6',  title:'Turkey Lettuce Wraps',       cats:['high-protein','low-carb','quick'], rating:3, mine:false, img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop'},
+      {id:'r7',  title:'Roasted Cauli Bowls',        cats:['vegetarian','roast','family'],     rating:4, mine:false, img:'https://images.unsplash.com/photo-1543352634-11a8e2d3d6c4?q=80&w=800&auto=format&fit=crop'},
+      {id:'r8',  title:'Garlic Shrimp Zoodles',      cats:['fish','low-carb','quick'],         rating:5, mine:false, img:'https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?q=80&w=800&auto=format&fit=crop'},
+      {id:'r9',  title:'Overnight Oats',             cats:['breakfast','budget','vegetarian'], rating:4, mine:false, img:'https://images.unsplash.com/photo-1476127391220-4f9e1f0adf7b?q=80&w=800&auto=format&fit=crop'},
+      {id:'r10', title:'Chicken & Quinoa Bowls',     cats:['high-protein','family'],           rating:4, mine:false, img:'https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=800&auto=format&fit=crop'}
+    ];
+
+    const recipesEl = document.getElementById('recipes');
+    const catListEl = document.getElementById('cat-list');
+    const searchEl  = document.getElementById('search');
+    const countEl   = document.getElementById('results-count');
+
+    // simple local favorites/ratings
+    const favKey = 'wp_favorites';
+    const rateKey = 'wp_ratings';
+    const favorites = new Set(JSON.parse(localStorage.getItem(favKey) || '[]'));
+    const ratings = JSON.parse(localStorage.getItem(rateKey) || '{}');
+
+    // gather categories
+    const allCats = Array.from(new Set(demo.flatMap(r=>r.cats))).sort();
+
+    // render category sidebar
+    const state = { cats: new Set(), view: 'all', q: '' };
+
+    function renderCats(){
+      catListEl.innerHTML = allCats.map(c => `
+        <li><label class="cat"><input type="checkbox" value="${c}"> ${c}</label></li>
+      `).join('');
+      catListEl.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          if (cb.checked) state.cats.add(cb.value); else state.cats.delete(cb.value);
+          renderRecipes();
+        });
+      });
+    }
+
+    function card(r){
+      const rVal = ratings[r.id] ?? r.rating;
+      const fav = favorites.has(r.id);
+      const tags = r.cats.map(t=>`<span class="pill">${t}</span>`).join('');
+      return `
+        <div class="recipe-card">
+          <img src="${r.img}" alt="">
+          <div class="rc-body">
+            <div class="rc-title">
+              <h3>${r.title}</h3>
+              <button class="icon fav ${fav?'on':''}" data-fav="${r.id}" title="Favorite">★</button>
+            </div>
+            <div class="stars" data-id="${r.id}" aria-label="Rating">
+              ${[1,2,3,4,5].map(n=>`<button data-rate="${n}" class="${n<=rVal?'on':''}">★</button>`).join('')}
+            </div>
+            <div class="tags">${tags}</div>
+            <div class="rc-actions">
+              <a class="btn small alt" href="/weekplan.html">Add to Weekplan</a>
+              <button class="btn small" data-save="${r.id}">Save adjusted</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function matchesFilters(r){
+      if (state.q && !r.title.toLowerCase().includes(state.q)) return false;
+      if (state.cats.size){
+        for (const c of state.cats){ if (!r.cats.includes(c)) return false; }
+      }
+      if (state.view === 'favorites') return favorites.has(r.id);
+      if (state.view === 'mine') return r.mine === true;
+      return true;
+    }
+
+    function renderRecipes(){
+      const list = demo.filter(matchesFilters);
+      countEl.textContent = list.length + (list.length === 1 ? ' recipe' : ' recipes');
+      recipesEl.innerHTML = list.map(card).join('') || '<p class="muted">No recipes match.</p>';
+
+      // wire favorites
+      recipesEl.querySelectorAll('[data-fav]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.dataset.fav;
+          if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+          localStorage.setItem(favKey, JSON.stringify(Array.from(favorites)));
+          renderRecipes();
+        });
+      });
+
+      // wire ratings
+      recipesEl.querySelectorAll('.stars').forEach(stars=>{
+        stars.querySelectorAll('button').forEach(b=>{
+          b.addEventListener('click', ()=>{
+            ratings[stars.dataset.id] = +b.dataset.rate;
+            localStorage.setItem(rateKey, JSON.stringify(ratings));
+            renderRecipes();
+          });
+        });
+      });
+
+      // save adjusted (demo UX only)
+      recipesEl.querySelectorAll('[data-save]').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          alert('Saved your adjusted version. (In production, this writes to your Supabase account.)');
+        });
+      });
+    }
+
+    // quick view buttons
+    document.querySelectorAll('.pill[data-view]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.view = b.dataset.view;
+        renderRecipes();
+      });
+    });
+
+    // search
+    searchEl.addEventListener('input', ()=>{
+      state.q = searchEl.value.trim().toLowerCase();
+      renderRecipes();
+    });
+
+    renderCats();
+    renderRecipes();
   </script>
 </body>
 </html>
