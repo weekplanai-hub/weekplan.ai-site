@@ -266,3 +266,25 @@ section[id], .card{scroll-margin-top:80px}
 @media (max-width: 900px){
   .lib-layout{ grid-template-columns:1fr }
 }
+
+
+/* --- AI generator: keep images responsive and not massive --- */
+#grid img,
+.ai-results img {
+  display: block;
+  width: 100%;
+  height: auto;           /* keep aspect */
+  max-height: 220px;      /* cap size */
+  object-fit: cover;      /* crop if too tall */
+  border-radius: 10px;
+  border: 1px solid #eef2f7;
+}
+
+@media (max-width: 480px) {
+  #grid img,
+  .ai-results img { max-height: 180px; }
+}
+
+/* helpful if the API output includes wide content */
+#grid, .ai-results { overflow: hidden; }
+
