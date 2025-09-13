@@ -233,3 +233,72 @@ header {
   }
   .links a { margin-left: 8px; }
 }
+
+/* =====================
+   Planner Page (weekplan.html)
+===================== */
+#planner-section h2 {
+  margin: 0;
+}
+
+#week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Individual day tiles */
+#week-grid .tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+#week-grid .tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+#week-grid img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  background: #f3f4f6;
+}
+
+#week-grid strong {
+  font-size: 1rem;
+}
+
+.handle {
+  cursor: grab;
+  font-size: 18px;
+}
+
+.btn.small {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Auth Section */
+#auth-section input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+#auth-section input:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
