@@ -9,6 +9,7 @@
   <link rel="icon" href="https://img.icons8.com/color/96/meal.png" />
 </head>
 <body>
+  <!-- Sticky NAV ONLY -->
   <header class="wrap">
     <nav class="nav">
       <a class="brand" href="/">Weekplan<span>.ai</span></a>
@@ -19,12 +20,15 @@
         <a class="login-btn" href="/weekplan.html">Log in</a>
       </div>
     </nav>
+  </header>
 
-    <section class="hero two-col">
+  <main class="wrap">
+    <!-- HERO (no longer inside header so it scrolls naturally) -->
+    <section class="hero two-col" id="home">
       <div>
-        <h1>Allergy-friendly meal plans, <em>just for you.</em></h1>
+        <h1><span id="rot-word" class="rot">Allergy-friendly</span> meal plans, <em>just for you.</em></h1>
         <p class="sub">Tell us your allergens, goals, and tastes. Our AI builds a 7-day plan with recipes you can drag, drop, and tweak in seconds.</p>
-        <div class="cta-row">
+        <div class="cta-row" style="display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn" href="/weekplan.html">Start free</a>
           <a class="btn alt" href="#features">See features</a>
         </div>
@@ -40,9 +44,7 @@
         <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop" alt="Week plan preview" />
       </div>
     </section>
-  </header>
 
-  <main class="wrap">
     <section id="features" class="card">
       <h2>Why Weekplan.ai</h2>
       <ul class="feature-grid">
@@ -96,8 +98,26 @@
   <footer class="wrap footer">
     <small>© <span id="y"></span> Weekplan.ai</small>
   </footer>
+
+  <!-- Scripts: year & rotating word -->
   <script>
+    // footer year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // rotating hero word
+    const words = ["Allergy-friendly","Fitness","Weightloss","Family","Budget","High-protein"];
+    const rot = document.getElementById('rot-word');
+    let i = 0;
+    setInterval(()=>{
+      rot.classList.add('fade-out');
+      setTimeout(()=>{
+        i = (i+1) % words.length;
+        rot.textContent = words[i];
+        rot.classList.remove('fade-out');
+        rot.classList.add('fade-in');
+        setTimeout(()=>rot.classList.remove('fade-in'), 350);
+      }, 250);
+    }, 2200);
   </script>
 </body>
 </html>
