@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weekplan.ai — AI Oppskriftsgenerator</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/">Weekplan<span>.ai</span></a>
+      <div class="links">
+        <a class="btn small" href="/weekplan.html">Til ukeplan</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2>AI Oppskriftsgenerator</h2>
+      <p class="muted">Lim inn en API-nøkkel (OpenRouter eller OpenAI), velg modell, fyll inn preferanser og generér 7 kort klare til ukeplanen.</p>
+
+      <!-- Provider / key / model -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end;margin:12px 0">
+        <div>
+          <label for="provider" style="display:block;font-weight:600;margin-bottom:6px">Provider</label>
+          <select id="provider" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+            <option value="openrouter" selected>OpenRouter</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </div>
+        <div>
+          <label for="apiKey" style="display:block;font-weight:600;margin-bottom:6px">API-nøkkel</label>
+          <input id="apiKey" type="password" placeholder="Lim inn API key" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+        </div>
+        <div>
+          <label for="model" style="display:block;font-weight:600;margin-bottom:6px">Modell</label>
+          <input id="model" type="text" value="nvidia/nemotron-nano-9b-v2:free" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+          <small class="muted">Eksempel OpenAI: <code>gpt-4o-mini</code></small>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="saveKey" class="btn small">Lagre nøkkel lokalt</button>
+        <button id="loadKey" class="btn small alt">Hent lagret nøkkel</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Preferanser</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end">
+        <div>
+          <label for="allergens" style="display:block;font-weight:600;margin-bottom:6px">Allergener (komma)</label>
+          <input id="allergens" type="text" placeholder="gluten, melk, nøtter" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+        </div>
+        <div>
+          <label for="diet" style="display:block;font-weight:600;margin-bottom:6px">Kosthold</label>
+          <select id="diet" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+            <option value="">Ingen spesifikk</option>
+            <option>Vegetar</option>
+            <option>Vegan</option>
+            <option>Høyt protein</option>
+            <option>Lavt budsjett</option>
+            <option>Rask (≤20 min)</option>
+          </select>
+        </div>
+        <div>
+          <label for="maxMins" style="display:block;font-weight:600;margin-bottom:6px">Maks tid (min)</label>
+          <input id="maxMins" type="number" value="30" min="10" step="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin-top:12px">
+        <div>
+          <label for="cuisines" style="display:block;font-weight:600;margin-bottom:6px">Kjøkken/smak</label>
+          <input id="cuisines" type="text" placeholder="norsk, italiensk, asiatisk" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+        </div>
+        <div>
+          <label for="servings" style="display:block;font-weight:600;margin-bottom:6px">Porsjoner</label>
+          <input id="servings" type="number" value="2" min="1" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:12px">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button id="generate" class="btn">Generer 7 oppskrifter</button>
+        <span id="status" class="muted" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Resultat</h3>
+      <ul id="grid" class="grid"></ul>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <small>© <span id="y"></span> Weekplan.ai</small>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    const PLACEHOLDER = 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop';
+    const DAYS = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
+
+    const providerEl = document.getElementById('provider');
+    const keyEl = document.getElementById('apiKey');
+    const modelEl = document.getElementById('model');
+    const saveKeyBtn = document.getElementById('saveKey');
+    const loadKeyBtn = document.getElementById('loadKey');
+    const genBtn = document.getElementById('generate');
+    const statusEl = document.getElementById('status');
+    const gridEl = document.getElementById('grid');
+
+    // Local storage helpers
+    const KEY_STORE = 'weekplan_api_key';
+    saveKeyBtn.addEventListener('click', () => {
+      if (!keyEl.value.trim()) { status('Tom nøkkel – ingenting lagret', 'error'); return; }
+      localStorage.setItem(KEY_STORE, keyEl.value.trim());
+      status('Nøkkel lagret lokalt', 'ok');
+    });
+    loadKeyBtn.addEventListener('click', () => {
+      const v = localStorage.getItem(KEY_STORE) || '';
+      keyEl.value = v;
+      status(v ? 'Nøkkel lastet' : 'Fant ingen lagret nøkkel', v ? 'ok' : 'error');
+    });
+
+    genBtn.addEventListener('click', async () => {
+      const apiKey = keyEl.value.trim();
+      const model = modelEl.value.trim();
+      if (!apiKey) return status('Mangler API-nøkkel', 'error');
+      if (!model) return status('Mangler modell', 'error');
+
+      const prompt = buildPrompt({
+        allergens: document.getElementById('allergens').value.trim(),
+        diet: document.getElementById('diet').value.trim(),
+        maxMins: +document.getElementById('maxMins').value || 30,
+        cuisines: document.getElementById('cuisines').value.trim(),
+        servings: +document.getElementById('servings').value || 2
+      });
+
+      genBtn.disabled = true;
+      gridEl.innerHTML = '';
+      status('Genererer …', 'loading');
+
+      try {
+        const text = await callModel(providerEl.value, apiKey, model, prompt);
+        const data = toJSON(text);
+        if (!data || !Array.isArray(data.week) || data.week.length === 0) {
+          throw new Error('Ugyldig svar – fant ingen oppskrifter.');
+        }
+        renderCards(data.week);
+        status(`OK — ${data.week.length} retter generert`, 'ok');
+      } catch (e) {
+        status(e.message || 'Feil ved generering', 'error');
+        gridEl.innerHTML = '<li class="tile"><div class="muted">Ingen resultat</div></li>';
+      } finally {
+        genBtn.disabled = false;
+      }
+    });
+
+    function status(msg, type){
+      statusEl.textContent = msg;
+      statusEl.style.color = type === 'error' ? '#ef4444' : (type === 'loading' ? '#1a73e8' : '#16a34a');
+    }
+
+    function buildPrompt({allergens, diet, maxMins, cuisines, servings}){
+      return `
+Du er en ernærings- og matfagekspert. Lag en 7-dagers middagsliste (én rett per dag) som passer følgende:
+- Allergier/intoleranser: ${allergens || 'ingen spesifisert'}
+- Kosthold/tema: ${diet || 'valgfritt'}
+- Maks tilberedningstid: ${maxMins} minutter
+- Kjøkken/smaker: ${cuisines || 'variert'}
+- Antall porsjoner: ${servings}
+
+Svar KUN som gyldig JSON i dette skjemaet (ingen forklaring, ingen tekst utenfor JSON):
+{
+  "week": [
+    {
+      "day": "Mandag|Tirsdag|...|Søndag",
+      "title": "Kort rettnavn",
+      "image": "URL eller tom streng",
+      "minutes": 20,
+      "tags": ["glutenfri","melkefri","nøttefri","vegan","høy-protein"],
+      "ingredients": ["200 g kylling","1 ss sitron"],
+      "instructions": ["Sett ovnen på 200°C","Bland ...","Stek ..."],
+      "nutrition": { "kcal": 520, "protein_g": 35, "carbs_g": 55, "fat_g": 18 }
+    }
+  ]
+}
+Sørg for at alle 7 dager er med (Mandag til Søndag) og at minutes ≤ ${maxMins}.
+Bruk norske dag- og ingrediensnavn.
+      `.trim();
+    }
+
+    async function callModel(provider, apiKey, model, prompt){
+      if (provider === 'openrouter') {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${apiKey}`,
+            'HTTP-Referer': location.origin,
+            'X-Title': 'Weekplan.ai Recipe Generator'
+          },
+          body: JSON.stringify({
+            model,
+            messages:[
+              { role:'system', content:'Du er en hjelpsom assistent som svarer på norsk.' },
+              { role:'user', content: prompt }
+            ]
+          })
+        });
+        if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+        const data = await res.json();
+        return data?.choices?.[0]?.message?.content || '';
+      } else if (provider === 'openai') {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model,
+            messages:[
+              { role:'system', content:'Du er en hjelpsom assistent som svarer på norsk.' },
+              { role:'user', content: prompt }
+            ]
+          })
+        });
+        if (!res.ok) throw new Error(`OpenAI ${res.status}`);
+        const data = await res.json();
+        return data?.choices?.[0]?.message?.content || '';
+      } else {
+        throw new Error('Ukjent provider');
+      }
+    }
+
+    function toJSON(text){
+      // Allow ```json fences
+      const fence = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
+      const raw = fence ? fence[1] : text;
+      try { return JSON.parse(raw); } catch(_e) {}
+      const cleaned = raw
+        .replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
+        .replace(/,\s*([\]}])/g,'$1');
+      try { return JSON.parse(cleaned); } catch(e) {
+        throw new Error('Kunne ikke parse JSON fra modellen.');
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function renderCards(list){
+      gridEl.innerHTML = list.map((r, i) => {
+        const img = r.image && r.image.startsWith('http') ? r.image : PLACEHOLDER;
+        const mins = r.minutes ? `<span class="pill">${r.minutes} min</span>` : '';
+        const kcal = r?.nutrition?.kcal ? `<span class="pill">${r.nutrition.kcal} kcal</span>` : '';
+        const macros = r?.nutrition ? `
+          <span class="pill">P:${r.nutrition.protein_g||0} g</span>
+          <span class="pill">K:${r.nutrition.carbs_g||0} g</span>
+          <span class="pill">F:${r.nutrition.fat_g||0} g</span>` : '';
+        const tags = Array.isArray(r.tags) ? r.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join('') : '';
+        const ings = Array.isArray(r.ingredients) ? r.ingredients.map(x=>`<li>${escapeHtml(x)}</li>`).join('') : '';
+        const steps = Array.isArray(r.instructions) ? r.instructions.map(x=>`<li>${escapeHtml(x)}</li>`).join('') : '';
+        const day = escapeHtml(r.day || DAYS[i] || '');
+
+        return `
+<li class="tile">
+  <header style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <strong>${day} — ${escapeHtml(r.title || 'Uten tittel')}</strong>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${mins}${kcal}${macros}</div>
+  </header>
+  <img src="${img}" alt="">
+  <div class="tags">${tags}</div>
+  <details><summary>Ingredienser</summary><ul>${ings}</ul></details>
+  <details><summary>Fremgangsmåte</summary><ol>${steps}</ol></details>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+    <button class="btn small alt" data-copy="${i}">Kopier JSON</button>
+    <button class="btn small" data-use="${i}">Bruk i ukeplan</button>
+  </div>
+</li>`;
+      }).join('');
+
+      // Wire actions
+      gridEl.querySelectorAll('[data-copy]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = +btn.dataset.copy;
+          const li = gridEl.children[idx];
+          // Reconstruct JSON from DOM data by storing original object on element if desired.
+          // Simpler: store a serialized snapshot in dataset on render.
+        });
+      });
+
+      // To actually copy the JSON and send to planner, keep original list in closure:
+      gridEl._recipes = list;
+
+      gridEl.querySelectorAll('[data-copy]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const r = gridEl._recipes[+btn.dataset.copy];
+          navigator.clipboard.writeText(JSON.stringify(r, null, 2));
+          btn.textContent = 'Kopiert!';
+          setTimeout(()=>btn.textContent='Kopier JSON', 1200);
+        });
+      });
+      gridEl.querySelectorAll('[data-use]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const r = gridEl._recipes[+btn.dataset.use];
+          window.dispatchEvent(new CustomEvent('recipe:selected', { detail: r }));
+          btn.textContent = 'Sendt ✓';
+          setTimeout(()=>btn.textContent='Bruk i ukeplan', 1200);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
