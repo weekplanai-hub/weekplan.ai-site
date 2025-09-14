@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Questionnaire | Weekplan.ai</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Local tweaks (keeps your site’s global styles) */
+    .q-card {
+      background: var(--panel, #fff);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow, 0 4px 18px rgba(0,0,0,.06));
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    fieldset { margin-bottom: 18px; }
+    legend { font-weight: 600; margin-bottom: 6px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border:1px solid var(--border,#ddd);
+      cursor:pointer;
+      background:#f9fafb;
+    }
+    .chip[aria-pressed="true"] {
+      background:#dcfce7;
+      border-color:#16a34a;
+    }
+    .out {
+      border:1px dashed var(--border,#ddd);
+      padding:12px;
+      border-radius:8px;
+      background:#f3f4f6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space:pre-wrap;
+    }
+    .actions { margin-top:12px; display:flex; gap:10px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Questionnaire</h1>
+    <div class="q-card">
+      <!-- Step 1 -->
+      <section data-step="1">
+        <fieldset>
+          <legend>Context</legend>
+          <label for="typical">Typical week</label>
+          <textarea id="typical" placeholder="Describe your routines, time windows…"></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>What’s worked / not worked</legend>
+          <label for="worked">Worked well</label>
+          <textarea id="worked"></textarea>
+          <label for="notWorked">Didn’t work</label>
+          <textarea id="notWorked"></textarea>
+        </fieldset>
+        <div class="actions">
+          <button class="btn" id="next1">Next</button>
+        </div>
+      </section>
+
+      <!-- Step 2 -->
+      <section data-step="2" hidden>
+        <fieldset>
+          <legend>Goals</legend>
+          <div class="chips" id="goalChips"></div>
+          <input id="goalFree" type="text" placeholder="Add your own goal (Enter)" />
+        </fieldset>
+        <fieldset>
+          <legend>Pain points</legend>
+          <div class="chips" id="painChips"></div>
+          <input id="painFree" type="text" placeholder="Add a pain point (Enter)" />
+        </fieldset>
+        <fieldset>
+          <legend>Trade-offs</legend>
+          <label for="timeAvail">Time available (min/day)</label>
+          <input id="timeAvail" type="number" value="30" />
+          <label for="variety">Variety vs repetition</label>
+          <input id="variety" type="range" min="0" max="10" value="7" />
+          <span id="varietyOut">7/10</span>
+        </fieldset>
+        <div class="actions">
+          <button class="btn" id="back2">Back</button>
+          <button class="btn" id="next2">Next</button>
+        </div>
+      </section>
+
+      <!-- Step 3 -->
+      <section data-step="3" hidden>
+        <fieldset>
+          <legend>Constraints</legend>
+          <label for="hardNo">No-gos</label>
+          <input id="hardNo" type="text" placeholder="Allergies, dislikes…" />
+          <label for="mustInclude">Must include</label>
+          <input id="mustInclude" type="text" placeholder="Non-negotiables…" />
+        </fieldset>
+        <fieldset>
+          <legend>Output</legend>
+          <div class="out" id="jsonOut">{ }</div>
+          <div class="actions">
+            <button class="btn" id="copyBtn">Copy JSON</button>
+            <button class="btn" id="downloadBtn">Download JSON</button>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <button class="btn" id="back3">Back</button>
+          <button class="btn btn-primary" id="finishBtn">Finish</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+const GOALS = ['save time','reduce stress','improve health','stick to budget'];
+const PAINS = ['no time','decision fatigue','shopping hassles','too expensive'];
+
+const state = { context:{typical:'',worked:'',notWorked:''}, goals:[], painPoints:[], timeAvail:30, variety:7, hardNo:'', mustInclude:'' };
+
+init();
+function init(){
+  injectChips('goalChips', GOALS, state.goals);
+  injectChips('painChips', PAINS, state.painPoints);
+  bindText('typical','context.typical');
+  bindText('worked','context.worked');
+  bindText('notWorked','context.notWorked');
+  bindNumber('timeAvail','timeAvail');
+  bindRange('variety','variety','varietyOut');
+  bindText('hardNo','hardNo');
+  bindText('mustInclude','mustInclude');
+  onEnterAdd('goalFree', state.goals, 'goalChips');
+  onEnterAdd('painFree', state.painPoints, 'painChips');
+  // nav
+  document.getElementById('next1').onclick=()=>go(2);
+  document.getElementById('back2').onclick=()=>go(1);
+  document.getElementById('next2').onclick=()=>{buildOutput();go(3)};
+  document.getElementById('back3').onclick=()=>go(2);
+  document.getElementById('finishBtn').onclick=()=>{buildOutput();alert("Done ✔️")};
+  document.getElementById('copyBtn').onclick=copyJSON;
+  document.getElementById('downloadBtn').onclick=downloadJSON;
+}
+function byId(id){return document.getElementById(id);}
+function go(step){document.querySelectorAll('section').forEach(s=>s.hidden=s.dataset.step!=step);}
+function setPath(path,val){const parts=path.split('.');let ref=state;for(let i=0;i<parts.length-1;i++){if(!(parts[i] in ref))ref[parts[i]]={};ref=ref[parts[i]];}ref[parts.at(-1)]=val;}
+function getPath(path){return path.split('.').reduce((o,k)=>o?o[k]:undefined,state);}
+function bindText(id,path){const el=byId(id);el.value=getPath(path)||'';el.oninput=()=>{setPath(path,el.value);liveOut();}}
+function bindNumber(id,path){const el=byId(id);el.value=getPath(path)||0;el.oninput=()=>{setPath(path,+el.value||0);liveOut();}}
+function bindRange(id,path,outId){const el=byId(id),out=outId?byId(outId):null;el.value=getPath(path)||0;if(out)out.textContent=`${el.value}/10`;el.oninput=()=>{setPath(path,+el.value);if(out)out.textContent=`${el.value}/10`;liveOut();}}
+function injectChips(containerId,preset,arr){const c=byId(containerId);c.innerHTML='';[...preset,...arr.filter(v=>!preset.includes(v))].forEach(v=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=v;b.setAttribute('aria-pressed',arr.includes(v));b.onclick=()=>{toggleInArray(arr,v);b.setAttribute('aria-pressed',arr.includes(v));liveOut();};c.appendChild(b);});}
+function onEnterAdd(inputId,arr,containerId){const el=byId(inputId);el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const v=el.value.trim();if(v&&!arr.includes(v)){arr.push(v);injectChips(containerId,[],arr);el.value='';liveOut();}}});}
+function toggleInArray(a,v){const i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);}
+function buildOutput(){byId('jsonOut').textContent=JSON.stringify(state,null,2);}
+function liveOut(){if(!byId('jsonOut').closest('section').hidden)buildOutput();}
+function copyJSON(){navigator.clipboard.writeText(byId('jsonOut').textContent).then(()=>alert('Copied ✔️'));}
+function downloadJSON(){const blob=new Blob([byId('jsonOut').textContent],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='questionnaire.json';a.click();URL.revokeObjectURL(url);}
+</script>
+</body>
+</html>
