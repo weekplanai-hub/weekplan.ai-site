@@ -14,7 +14,8 @@
   const saveBtn       = document.getElementById('save-btn');
   const genBtn        = document.getElementById('generate-btn');
 
-  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  // FULLT DAGSNAVN (en)
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
   // ----- Planner state in memory
   let planId = null;
@@ -292,7 +293,7 @@
     return null;
   }
   function askDow() {
-    const input = prompt('Hvilken dag? 0=Mon … 6=Sun', '0');
+    const input = prompt('Hvilken dag? 0=Monday … 6=Sunday', '0');
     if (input === null) return null;
     const n = +input;
     return (n>=0 && n<=6) ? n : null;
