@@ -11,60 +11,59 @@
     --card:#ffffff;
     --ink:#0f172a;
     --muted:#6b7280;
-    --blue:#2563eb;         /* primary blue */
-    --blue-2:#1d4ed8;       /* darker hover */
-    --ring:rgba(37,99,235,.15);
+    --blue:#2563eb;
+    --ring:rgba(37,99,235,.12);
     --line:#e5e7eb;
   }
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
   .center{min-height:100%;display:grid;place-items:center;padding:18px}
-  .hero{max-width:680px;text-align:center}
-  .brand{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;color:#111}
-  .brand .dot{width:12px;height:12px;border-radius:999px;background:linear-gradient(135deg,#60a5fa,#34d399)}
-  h1{margin:.2rem 0 0;font-size:34px;letter-spacing:-.02em}
-  p.sub{margin:.4rem 0 1.2rem;color:var(--muted)}
-
+  .hero{max-width:720px;text-align:center;padding:16px}
+  h1{margin:.2rem 0 0;font-size:36px;letter-spacing:-.02em}
+  p.sub{margin:.6rem 0 1.6rem;color:var(--muted)}
   .btn{
-    border:0;cursor:pointer;border-radius:14px;
-    font-weight:800;padding:16px 22px;box-shadow:0 10px 26px var(--ring);
+    border:0;cursor:pointer;border-radius:16px;
+    font-weight:800;padding:16px 24px;box-shadow:0 10px 26px var(--ring);
     background:linear-gradient(135deg,#60a5fa,#2563eb);color:#fff;
   }
   .btn:active{transform:translateY(1px)}
-  .link{margin-top:10px;color:#2563eb;text-decoration:underline;cursor:pointer;font-size:.95rem}
 
   /* Modal (bright) */
-  dialog{width:100%;max-width:680px;border:0;padding:0;margin:0 auto;background:transparent}
+  dialog{width:100%;max-width:720px;border:0;padding:0;margin:0 auto;background:transparent}
   dialog::backdrop{background:rgba(0,0,0,.25)}
   .sheet{
     background:var(--card);border:1px solid var(--line);border-radius:18px;
-    box-shadow:0 24px 60px rgba(0,0,0,.12);
-    overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.12);overflow:hidden;
   }
   .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
   .title{font-weight:900}
   .close{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 10px;cursor:pointer}
   .bd{padding:14px 16px}
   .muted{color:var(--muted)}
+  .hint{color:#94a3b8;font-size:.92rem}
 
   textarea,input,select{
     width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;outline:none;
   }
   textarea::placeholder,input::placeholder{color:#94a3b8}
 
-  /* quick checks */
-  .checks{display:grid;gap:8px;margin-top:10px}
-  .check{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);padding:10px;border-radius:12px}
+  /* quick checks (compact) */
+  .checks{display:grid;gap:8px;margin-top:10px;grid-template-columns:1fr 1fr}
+  @media(max-width:420px){ .checks{grid-template-columns:1fr} }
+  .check{
+    display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);
+    padding:8px 10px;border-radius:10px;font-size:.95rem;line-height:1.2;
+  }
+  .check input{width:16px;height:16px}
 
   .row{display:grid;gap:10px}
   .row.two{grid-template-columns:1fr 1fr}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
   .btn.alt{background:#eff6ff;color:#1e3a8a;border:1px solid #bfdbfe;box-shadow:none}
   .btn.slim{padding:10px 14px;border-radius:10px}
 
-  /* Topic hub */
-  .hub{display:grid;gap:10px}
-  .tiles{display:grid;gap:10px;grid-template-columns:1fr 1fr}
-  @media(min-width:640px){.tiles{grid-template-columns:1fr 1fr 1fr}}
+  /* Hub */
+  .tiles{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:640px){.tiles{grid-template-columns:1fr 1fr}}
   .tile{
     border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;cursor:pointer;
     display:flex;gap:10px;align-items:center;transition:box-shadow .12s ease, transform .06s ease;
@@ -72,9 +71,8 @@
   .tile:hover{box-shadow:0 8px 22px var(--ring)}
   .tile:active{transform:translateY(1px)}
   .badge{margin-left:auto;background:#e0e7ff;color:#1e3a8a;border-radius:999px;padding:4px 8px;font-weight:700;font-size:.8rem}
-
-  /* Topic panel (inline) */
   .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{border:1px solid var(--line);background:#f8fafc;color:#0f172a;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
   .chip[aria-pressed="true"]{background:#e0f2fe;border-color:#93c5fd}
@@ -88,11 +86,9 @@
 <body>
 <div class="center">
   <section class="hero">
-    <div class="brand"><span class="dot"></span><strong>Weekplan.ai</strong></div>
     <h1>Ready to eat smarter?</h1>
     <p class="sub">Start with one note or choose a few preferences. You can keep it simple or go deep—your call.</p>
     <button class="btn" id="getStarted">Get started</button>
-    <div class="link" id="peekJSON">Preview JSON (for demo)</div>
   </section>
 </div>
 
@@ -104,9 +100,30 @@
       <button class="close" data-close>Close</button>
     </div>
     <div class="bd">
-      <label class="muted">Optional note</label>
-      <textarea id="quickNote" placeholder="e.g., 20-min dinners • love Mediterranean • no mushrooms"></textarea>
+      <!-- Plan basics -->
+      <div class="row two" style="margin-bottom:10px">
+        <div>
+          <label class="muted">Servings per recipe</label>
+          <select id="servings">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+          </select>
+          <div class="hint">How many people each dinner should serve.</div>
+        </div>
+        <div>
+          <label class="muted">Units</label>
+          <select id="units">
+            <option value="metric" selected>Metric (g, ml)</option>
+            <option value="us">US (oz, cups)</option>
+          </select>
+          <div class="hint">Measurement system for ingredients.</div>
+        </div>
+      </div>
 
+      <!-- Free text -->
+      <label class="muted">Custom instructions (optional)</label>
+      <textarea id="quickNote" placeholder="Tell the planner anything: goals, ingredients to avoid/include, cuisines, time limits…"></textarea>
+
+      <!-- Quick presets (compact) -->
       <div class="muted" style="margin-top:10px">Pick any (optional)</div>
       <div class="checks">
         <label class="check"><input type="checkbox" value="save_time"> Save time</label>
@@ -136,22 +153,14 @@
       <div class="title">Tweak what matters (optional)</div>
       <button class="close" data-close>Close</button>
     </div>
-    <div class="bd hub">
-      <p class="muted" style="margin:0">Choose a topic to adjust. You can do one or many, then tap <b>Done for now</b>.</p>
-
-      <div class="tiles" id="tiles">
-        <!-- tiles are injected -->
-      </div>
-
-      <div id="panel" class="panel" hidden>
-        <!-- dynamic topic UI renders here -->
-      </div>
-
+    <div class="bd">
+      <p class="muted" style="margin:0 0 10px">Pick a topic. Set just one—or keep going.</p>
+      <div class="tiles" id="tiles"></div>
+      <div id="panel" class="panel" hidden></div>
       <div class="actions">
         <button class="btn slim alt" id="clearPanel">Back to topics</button>
         <button class="btn" id="finish">Done for now</button>
       </div>
-
       <details class="peek">
         <summary class="muted">JSON preview</summary>
         <div class="box" id="hubJSON">{ }</div>
@@ -172,7 +181,7 @@ let state = {
   taste:{cuisines:[],spiceTolerance:5,allowDesserts:true,proteinPrefs:[]},
   mealRules:{focusMeals:'dinner',servingsPerRecipe:2,leftoversPolicy:'none',timePerDinnerMin:30,varietyLevel:7},
   skillBudget:{skillLevel:'beginner',budgetLevel:'medium',equipment:[]},
-  meta:{device:'web',savedAt:null}
+  meta:{device:'web',savedAt:null,units:'metric'}
 };
 
 const PRESETS = {
@@ -200,7 +209,7 @@ function exportObj(){
     taste:{...state.taste, allowDesserts: !!state.taste.allowDesserts},
     mealRules:{...state.mealRules},
     skillBudget:{...state.skillBudget},
-    meta:{device:'web', savedAt:new Date().toISOString()}
+    meta:{device:'web', savedAt:new Date().toISOString(), units: state.meta.units}
   };
 }
 function updateJSON(){
@@ -210,8 +219,18 @@ function updateJSON(){
 
 /* ---------- Landing ---------- */
 $('#getStarted').onclick = () => $('#quick').showModal();
-$('#peekJSON').onclick = () => alert(JSON.stringify(exportObj(), null, 2));
 document.querySelectorAll('[data-close]').forEach(b=> b.onclick = e => e.target.closest('dialog').close());
+
+/* Bind basics */
+$('#servings').addEventListener('change', e=>{
+  state.mealRules.servingsPerRecipe = +e.target.value; updateJSON();
+});
+$('#units').addEventListener('change', e=>{
+  state.meta.units = e.target.value; updateJSON();
+});
+$('#quickNote').addEventListener('input', e=>{
+  state.quickNote = e.target.value.trim(); updateJSON();
+});
 
 /* ---------- Quick flow ---------- */
 $('#doQuick').onclick = ()=>{
@@ -225,7 +244,6 @@ $('#doQuick').onclick = ()=>{
   alert('Plan ready (demo).');
 };
 $('#openHub').onclick = ()=> {
-  state.quickNote = $('#quickNote').value.trim();
   buildTiles();
   updateJSON();
   $('#hub').showModal();
@@ -284,184 +302,116 @@ function refreshBadges(){
 }
 
 /* Chips helper */
-function chipField(container, arr, preset, single=false, mapOut=v=>v){
+function chipField(container, arr, preset, single=false){
   container.innerHTML='';
-  const list=[...new Set([...(preset||[]), ...(arr||[])])];
+  const list=[...new Set([...(preset||[]), ...(Array.isArray(arr)?arr:[arr])].filter(Boolean))];
   list.forEach(v=>{
     const b=document.createElement('button');
-    b.type='button'; b.className='chip'; b.textContent=v.label||v;
-    const isOn = single ? ( (arr && (arr===v || arr===mapOut(v))) ) : (arr||[]).includes(mapOut(v));
+    b.type='button'; b.className='chip'; b.textContent=v;
+    const isOn = single ? (arr===v) : (arr||[]).includes(v);
     b.setAttribute('aria-pressed', String(isOn));
     b.onclick=()=>{
-      if(single){
-        // store directly
-        arr = mapOut(v);
-      }else{
-        const val = mapOut(v);
-        const i=(arr||[]).indexOf(val);
-        if(i>=0) arr.splice(i,1); else (arr||[]).push(val);
+      if(single){ arr=v; }
+      else{
+        const i=(arr||[]).indexOf(v);
+        if(i>=0) arr.splice(i,1); else (arr||[]).push(v);
       }
-      render(); // re-render topic panel
-      updateJSON(); refreshBadges();
+      renderTopic(); updateJSON(); refreshBadges();
     };
     container.appendChild(b);
   });
   return arr;
 }
 
-/* Topic renderers */
+/* Topic panel render */
 function openTopic(id){
-  const p = $('#panel'); p.hidden = false; p.innerHTML = '';
-  const h = (title, content)=>{ p.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px">
-    <strong>${title}</strong>
-    <button class="btn slim alt" id="doneTopic">Done</button>
-  </div>`; p.appendChild(content); $('#doneTopic').onclick=()=>{ clearPanel(); refreshBadges(); }; };
+  currentTopic = id;
+  renderTopic();
+}
+let currentTopic = null;
 
-  let box = document.createElement('div');
+function renderTopic(){
+  if(!currentTopic){ return; }
+  const id = currentTopic;
+  const p = $('#panel'); p.hidden = false; p.innerHTML = '';
+  const head = document.createElement('div');
+  head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='center';
+  head.innerHTML = `<strong>${TOPICS.find(t=>t.id===id)?.label||id}</strong>`;
+  const done = document.createElement('button'); done.className='btn slim alt'; done.textContent='Done';
+  done.onclick = ()=>{ clearPanel(); refreshBadges(); };
+  head.appendChild(done);
+  p.appendChild(head);
+
+  const box = document.createElement('div');
+
+  const mkChips=(arr, preset, single=false)=>{ const c=document.createElement('div'); c.className='chips'; if(single){ chipField(c, arr, preset, true); } else { chipField(c, arr, preset); } box.appendChild(c); return c; };
+  const mkAdd=(ph, arr)=>{ const add=document.createElement('input'); add.placeholder=ph; add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !arr.includes(v)){ arr.push(v); renderTopic(); updateJSON(); } } }; box.appendChild(add); };
 
   switch(id){
-    case 'goals':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.goals = chipField(chips, state.goals, PRESETS.goals);
-      const add=document.createElement('input'); add.placeholder='Add goal (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.goals.includes(v)){ state.goals.push(v); openTopic('goals'); updateJSON(); refreshBadges(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Goals', box); break;
-    }
-    case 'diet':{
-      const chips=document.createElement('div'); chips.className='chips';
-      // single-select diet
-      chipField(chips, state.dietary.dietStyle, PRESETS.diet, true, v=>v);
-      chips.onclick=e=>{
-        const v=e.target.textContent;
-        if(PRESETS.diet.includes(v)){ state.dietary.dietStyle=v; updateJSON(); refreshBadges(); openTopic('diet'); }
-      };
-      box.appendChild(chips); h('Diet style', box); break;
-    }
-    case 'allergies':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.dietary.allergies = chipField(chips, state.dietary.allergies, PRESETS.allergies);
-      const add=document.createElement('input'); add.placeholder='Add allergy (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.allergies.includes(v)){ state.dietary.allergies.push(v); openTopic('allergies'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Allergies', box); break;
-    }
-    case 'avoid':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.dietary.avoid = chipField(chips, state.dietary.avoid, PRESETS.avoid);
-      const add=document.createElement('input'); add.placeholder='Add “never show” (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.avoid.includes(v)){ state.dietary.avoid.push(v); openTopic('avoid'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Never show', box); break;
-    }
-    case 'must':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.dietary.mustInclude = chipField(chips, state.dietary.mustInclude, PRESETS.must);
-      const add=document.createElement('input'); add.placeholder='Add must-include (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.mustInclude.includes(v)){ state.dietary.mustInclude.push(v); openTopic('must'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Must include', box); break;
-    }
-    case 'time':{
-      const chips=document.createElement('div'); chips.className='chips';
+    case 'goals': mkChips(state.goals, PRESETS.goals); mkAdd('Add goal (Enter)', state.goals); break;
+    case 'diet': { const c=mkChips(state.dietary.dietStyle, PRESETS.diet, true); c.onclick=e=>{ const v=e.target.textContent; if(PRESETS.diet.includes(v)){ state.dietary.dietStyle=v; renderTopic(); updateJSON(); } }; break; }
+    case 'allergies': mkChips(state.dietary.allergies, PRESETS.allergies); mkAdd('Add allergy (Enter)', state.dietary.allergies); break;
+    case 'avoid': mkChips(state.dietary.avoid, PRESETS.avoid); mkAdd('Add “never show” (Enter)', state.dietary.avoid); break;
+    case 'must': mkChips(state.dietary.mustInclude, PRESETS.must); mkAdd('Add must-include (Enter)', state.dietary.mustInclude); break;
+    case 'time': {
+      const c=document.createElement('div'); c.className='chips';
       PRESETS.timeOpts.forEach(o=>{
-        const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=o.label;
+        const b=document.createElement('button'); b.className='chip'; b.textContent=o.label;
         b.setAttribute('aria-pressed', String(state.mealRules.timePerDinnerMin===o.val));
-        b.onclick=()=>{ state.mealRules.timePerDinnerMin=o.val; openTopic('time'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
+        b.onclick=()=>{ state.mealRules.timePerDinnerMin=o.val; renderTopic(); updateJSON(); };
+        c.appendChild(b);
       });
-      box.appendChild(chips); h('Time per dinner', box); break;
+      box.appendChild(c); break;
     }
-    case 'variety':{
-      const slider=document.createElement('div');
-      slider.innerHTML=`<input id="var" type="range" min="0" max="10" value="${state.mealRules.varietyLevel}" />
-                        <div class="sl">Variety: <span id="vo">${state.mealRules.varietyLevel}</span>/10</div>`;
-      slider.querySelector('#var').oninput=e=>{ state.mealRules.varietyLevel=+e.target.value; slider.querySelector('#vo').textContent=e.target.value; updateJSON(); refreshBadges(); };
-      box.appendChild(slider); h('Variety vs repetition', box); break;
+    case 'variety': {
+      box.innerHTML=`<input id="var" type="range" min="0" max="10" value="${state.mealRules.varietyLevel}"/>
+                     <div class="sl">Variety: <span id="vo">${state.mealRules.varietyLevel}</span>/10</div>`;
+      box.querySelector('#var').oninput=e=>{ state.mealRules.varietyLevel=+e.target.value; box.querySelector('#vo').textContent=e.target.value; updateJSON(); };
+      break;
     }
-    case 'skill':{
-      const chips=document.createElement('div'); chips.className='chips';
-      PRESETS.skill.forEach(v=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
-        b.setAttribute('aria-pressed', String(state.skillBudget.skillLevel===v));
-        b.onclick=()=>{ state.skillBudget.skillLevel=v; openTopic('skill'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
-      });
-      box.appendChild(chips); h('Cooking skill', box); break;
+    case 'skill': {
+      const c=document.createElement('div'); c.className='chips';
+      PRESETS.skill.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.skillLevel===v)); b.onclick=()=>{ state.skillBudget.skillLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
+      box.appendChild(c); break;
     }
-    case 'budget':{
-      const chips=document.createElement('div'); chips.className='chips';
-      PRESETS.budget.forEach(v=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
-        b.setAttribute('aria-pressed', String(state.skillBudget.budgetLevel===v));
-        b.onclick=()=>{ state.skillBudget.budgetLevel=v; openTopic('budget'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
-      });
-      box.appendChild(chips); h('Budget', box); break;
+    case 'budget': {
+      const c=document.createElement('div'); c.className='chips';
+      PRESETS.budget.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.budgetLevel===v)); b.onclick=()=>{ state.skillBudget.budgetLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
+      box.appendChild(c); break;
     }
-    case 'leftovers':{
-      const chips=document.createElement('div'); chips.className='chips';
-      PRESETS.leftovers.forEach(v=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
-        b.setAttribute('aria-pressed', String(state.mealRules.leftoversPolicy===v));
-        b.onclick=()=>{ state.mealRules.leftoversPolicy=v; openTopic('leftovers'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
-      });
-      box.appendChild(chips); h('Leftovers policy', box); break;
+    case 'leftovers': {
+      const c=document.createElement('div'); c.className='chips';
+      PRESETS.leftovers.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.leftoversPolicy===v)); b.onclick=()=>{ state.mealRules.leftoversPolicy=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
+      box.appendChild(c); break;
     }
-    case 'servings':{
-      const chips=document.createElement('div'); chips.className='chips';
-      PRESETS.servings.forEach(v=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
-        b.setAttribute('aria-pressed', String(state.mealRules.servingsPerRecipe===+v));
-        b.onclick=()=>{ state.mealRules.servingsPerRecipe=+v; openTopic('servings'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
-      });
-      box.appendChild(chips); h('Servings per recipe', box); break;
+    case 'servings': {
+      const c=document.createElement('div'); c.className='chips';
+      ['1','2','3','4','5','6'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.servingsPerRecipe===+v)); b.onclick=()=>{ state.mealRules.servingsPerRecipe=+v; renderTopic(); updateJSON(); }; c.appendChild(b); });
+      box.appendChild(c); break;
     }
-    case 'cuisines':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.taste.cuisines = chipField(chips, state.taste.cuisines, PRESETS.cuisines);
-      const add=document.createElement('input'); add.placeholder='Add cuisine (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.taste.cuisines.includes(v)){ state.taste.cuisines.push(v); openTopic('cuisines'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Cuisines', box); break;
+    case 'cuisines': mkChips(state.taste.cuisines, PRESETS.cuisines); mkAdd('Add cuisine (Enter)', state.taste.cuisines); break;
+    case 'spice': {
+      box.innerHTML=`<input id="sp" type="range" min="0" max="10" value="${state.taste.spiceTolerance}"/>
+                     <div class="sl">Spice: <span id="so">${state.taste.spiceTolerance}</span>/10</div>`;
+      box.querySelector('#sp').oninput=e=>{ state.taste.spiceTolerance=+e.target.value; box.querySelector('#so').textContent=e.target.value; updateJSON(); };
+      break;
     }
-    case 'spice':{
-      const slider=document.createElement('div');
-      slider.innerHTML=`<input id="sp" type="range" min="0" max="10" value="${state.taste.spiceTolerance}" />
-                        <div class="sl">Spice: <span id="so">${state.taste.spiceTolerance}</span>/10</div>`;
-      slider.querySelector('#sp').oninput=e=>{ state.taste.spiceTolerance=+e.target.value; slider.querySelector('#so').textContent=e.target.value; updateJSON(); refreshBadges(); };
-      box.appendChild(slider); h('Spice tolerance', box); break;
+    case 'dessert': {
+      const c=document.createElement('div'); c.className='chips';
+      ['allow','no'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=(v==='allow'?'Allow sometimes':'No desserts'); b.setAttribute('aria-pressed', String( (state.taste.allowDesserts && v==='allow') || (!state.taste.allowDesserts && v==='no') )); b.onclick=()=>{ state.taste.allowDesserts=(v==='allow'); renderTopic(); updateJSON(); }; c.appendChild(b); });
+      box.appendChild(c); break;
     }
-    case 'dessert':{
-      const chips=document.createElement('div'); chips.className='chips';
-      ['allow','no'].forEach(v=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=(v==='allow'?'Allow sometimes':'No desserts');
-        b.setAttribute('aria-pressed', String( (state.taste.allowDesserts && v==='allow') || (!state.taste.allowDesserts && v==='no') ));
-        b.onclick=()=>{ state.taste.allowDesserts = (v==='allow'); openTopic('dessert'); updateJSON(); refreshBadges(); };
-        chips.appendChild(b);
-      });
-      box.appendChild(chips); h('Desserts', box); break;
-    }
-    case 'proteins':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.taste.proteinPrefs = chipField(chips, state.taste.proteinPrefs, PRESETS.proteins);
-      const add=document.createElement('input'); add.placeholder='Add protein (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.taste.proteinPrefs.includes(v)){ state.taste.proteinPrefs.push(v); openTopic('proteins'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Preferred proteins', box); break;
-    }
-    case 'equipment':{
-      const chips=document.createElement('div'); chips.className='chips';
-      state.skillBudget.equipment = chipField(chips, state.skillBudget.equipment, PRESETS.equipment);
-      const add=document.createElement('input'); add.placeholder='Add equipment (Enter)';
-      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.skillBudget.equipment.includes(v)){ state.skillBudget.equipment.push(v); openTopic('equipment'); updateJSON(); } } };
-      box.appendChild(chips); box.appendChild(add); h('Equipment', box); break;
-    }
+    case 'proteins': mkChips(state.taste.proteinPrefs, PRESETS.proteins); mkAdd('Add protein (Enter)', state.taste.proteinPrefs); break;
+    case 'equipment': mkChips(state.skillBudget.equipment, PRESETS.equipment); mkAdd('Add equipment (Enter)', state.skillBudget.equipment); break;
   }
+
+  p.appendChild(box);
   updateJSON();
 }
-function clearPanel(){ const p=$('#panel'); p.hidden=true; p.innerHTML=''; }
+
+function clearPanel(){ currentTopic=null; const p=$('#panel'); p.hidden=true; p.innerHTML=''; }
 $('#clearPanel').onclick = clearPanel;
 $('#finish').onclick = ()=>{ state.meta.savedAt=new Date().toISOString(); updateJSON(); alert('Preferences ready (demo).'); };
-
-/* keep JSON in sync with quick note live */
-$('#quickNote').addEventListener('input', e=>{ state.quickNote=e.target.value.trim(); updateJSON(); });
 
 /* Init */
 updateJSON();
