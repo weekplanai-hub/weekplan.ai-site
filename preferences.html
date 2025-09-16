@@ -7,13 +7,8 @@
 <link rel="stylesheet" href="/styles.css" />
 <style>
   :root{
-    --bg:#f7fafc;
-    --card:#ffffff;
-    --ink:#0f172a;
-    --muted:#6b7280;
-    --blue:#2563eb;
-    --ring:rgba(37,99,235,.12);
-    --line:#e5e7eb;
+    --bg:#f7fafc; --card:#ffffff; --ink:#0f172a; --muted:#6b7280;
+    --blue:#2563eb; --ring:rgba(37,99,235,.12); --line:#e5e7eb;
   }
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
   .center{min-height:100%;display:grid;place-items:center;padding:18px}
@@ -26,14 +21,13 @@
     background:linear-gradient(135deg,#60a5fa,#2563eb);color:#fff;
   }
   .btn:active{transform:translateY(1px)}
+  .btn.alt{background:#eff6ff;color:#1e3a8a;border:1px solid #bfdbfe;box-shadow:none}
+  .btn.slim{padding:10px 14px;border-radius:10px}
 
-  /* Modal (bright) */
+  /* Dialogs */
   dialog{width:100%;max-width:720px;border:0;padding:0;margin:0 auto;background:transparent}
   dialog::backdrop{background:rgba(0,0,0,.25)}
-  .sheet{
-    background:var(--card);border:1px solid var(--line);border-radius:18px;
-    box-shadow:0 24px 60px rgba(0,0,0,.12);overflow:hidden;
-  }
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.12);overflow:hidden}
   .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
   .title{font-weight:900}
   .close{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 10px;cursor:pointer}
@@ -41,35 +35,32 @@
   .muted{color:var(--muted)}
   .hint{color:#94a3b8;font-size:.92rem}
 
-  textarea,input,select{
-    width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;outline:none;
-  }
+  textarea,input,select{width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;outline:none}
   textarea::placeholder,input::placeholder{color:#94a3b8}
-
-  /* quick checks (compact) */
-  .checks{display:grid;gap:8px;margin-top:10px;grid-template-columns:1fr 1fr}
-  @media(max-width:420px){ .checks{grid-template-columns:1fr} }
-  .check{
-    display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);
-    padding:8px 10px;border-radius:10px;font-size:.95rem;line-height:1.2;
-  }
-  .check input{width:16px;height:16px}
 
   .row{display:grid;gap:10px}
   .row.two{grid-template-columns:1fr 1fr}
   .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-  .btn.alt{background:#eff6ff;color:#1e3a8a;border:1px solid #bfdbfe;box-shadow:none}
-  .btn.slim{padding:10px 14px;border-radius:10px}
 
-  /* Hub */
+  /* Quick picks (compact) */
+  .checks{display:grid;gap:8px;margin-top:10px;grid-template-columns:1fr 1fr}
+  @media(max-width:420px){ .checks{grid-template-columns:1fr} }
+  .check{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-size:.95rem}
+  .check input{width:16px;height:16px}
+
+  /* Quick mini-wizard */
+  .qstep{display:none}
+  .qstep.show{display:block;animation:fade .18s ease-out}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .dot{width:8px;height:8px;border-radius:999px;background:#e5e7eb}
+  .dot.active{background:#2563eb}
+
+  /* Hub (unchanged) */
   .tiles{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr}
   @media(max-width:640px){.tiles{grid-template-columns:1fr 1fr}}
-  .tile{
-    border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;cursor:pointer;
-    display:flex;gap:10px;align-items:center;transition:box-shadow .12s ease, transform .06s ease;
-  }
-  .tile:hover{box-shadow:0 8px 22px var(--ring)}
-  .tile:active{transform:translateY(1px)}
+  .tile{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;cursor:pointer;display:flex;gap:10px;align-items:center;transition:box-shadow .12s, transform .06s}
+  .tile:hover{box-shadow:0 8px 22px var(--ring)} .tile:active{transform:translateY(1px)}
   .badge{margin-left:auto;background:#e0e7ff;color:#1e3a8a;border-radius:999px;padding:4px 8px;font-weight:700;font-size:.8rem}
   .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
 
@@ -92,61 +83,74 @@
   </section>
 </div>
 
-<!-- QUICK DIALOG -->
+<!-- QUICK DIALOG (two-card) -->
 <dialog id="quick">
   <div class="sheet">
     <div class="hd">
-      <div class="title">Quick start</div>
+      <div class="title" id="qTitle">Before we get started…</div>
       <button class="close" data-close>Close</button>
     </div>
     <div class="bd">
-      <!-- Plan basics -->
-      <div class="row two" style="margin-bottom:10px">
-        <div>
-          <label class="muted">Servings per recipe</label>
-          <select id="servings">
-            <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-          </select>
-          <div class="hint">How many people each dinner should serve.</div>
+
+      <!-- STEP 1: BASICS -->
+      <section class="qstep show" data-qstep="1">
+        <p class="muted" style="margin-top:0">Let’s agree on the basics for your plan.</p>
+        <div class="row two" style="margin-bottom:10px">
+          <div>
+            <label class="muted">Servings per recipe</label>
+            <select id="servings">
+              <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+            </select>
+            <div class="hint">How many people each dinner should serve.</div>
+          </div>
+          <div>
+            <label class="muted">Units</label>
+            <select id="units">
+              <option value="metric" selected>Metric (g, ml)</option>
+              <option value="us">US (oz, cups)</option>
+            </select>
+            <div class="hint">Measurement system for ingredients.</div>
+          </div>
         </div>
-        <div>
-          <label class="muted">Units</label>
-          <select id="units">
-            <option value="metric" selected>Metric (g, ml)</option>
-            <option value="us">US (oz, cups)</option>
-          </select>
-          <div class="hint">Measurement system for ingredients.</div>
+
+        <div class="actions" style="justify-content:flex-end">
+          <button class="btn" id="qContinue">Continue</button>
         </div>
-      </div>
+        <div class="dots"><span class="dot active"></span><span class="dot"></span></div>
+      </section>
 
-      <!-- Free text -->
-      <label class="muted">Custom instructions (optional)</label>
-      <textarea id="quickNote" placeholder="Tell the planner anything: goals, ingredients to avoid/include, cuisines, time limits…"></textarea>
+      <!-- STEP 2: DETAILS -->
+      <section class="qstep" data-qstep="2">
+        <label class="muted">Custom instructions (optional)</label>
+        <textarea id="quickNote" placeholder="Tell the planner anything: goals, ingredients to avoid/include, cuisines, time limits…"></textarea>
 
-      <!-- Quick presets (compact) -->
-      <div class="muted" style="margin-top:10px">Pick any (optional)</div>
-      <div class="checks">
-        <label class="check"><input type="checkbox" value="save_time"> Save time</label>
-        <label class="check"><input type="checkbox" value="weight_loss"> Weight loss</label>
-        <label class="check"><input type="checkbox" value="muscle_gain"> Muscle gain</label>
-        <label class="check"><input type="checkbox" value="vegetarian"> Vegetarian focus</label>
-        <label class="check"><input type="checkbox" value="budget_friendly"> Budget friendly</label>
-      </div>
+        <div class="muted" style="margin-top:10px">Pick any (optional)</div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" value="save_time"> Save time</label>
+          <label class="check"><input type="checkbox" value="weight_loss"> Weight loss</label>
+          <label class="check"><input type="checkbox" value="muscle_gain"> Muscle gain</label>
+          <label class="check"><input type="checkbox" value="vegetarian"> Vegetarian focus</label>
+          <label class="check"><input type="checkbox" value="budget_friendly"> Budget friendly</label>
+        </div>
 
-      <div class="actions">
-        <button class="btn" id="doQuick">Create Plan</button>
-        <button class="btn alt" id="openHub">Help me find my perfect food plan</button>
-      </div>
+        <div class="actions">
+          <button class="btn" id="doQuick">Create Plan</button>
+          <button class="btn alt" id="openHub">Help me find my perfect food plan</button>
+          <button class="btn slim alt" id="qBack">Back</button>
+        </div>
 
-      <details class="peek" id="quickPeek">
-        <summary class="muted">JSON preview</summary>
-        <div class="box" id="quickJSON">{ }</div>
-      </details>
+        <details class="peek" id="quickPeek">
+          <summary class="muted">JSON preview</summary>
+          <div class="box" id="quickJSON">{ }</div>
+        </details>
+        <div class="dots"><span class="dot"></span><span class="dot active"></span></div>
+      </section>
+
     </div>
   </div>
 </dialog>
 
-<!-- HUB / TOPIC DIALOG -->
+<!-- HUB / TOPIC DIALOG (unchanged) -->
 <dialog id="hub">
   <div class="sheet">
     <div class="hd">
@@ -170,7 +174,7 @@
 </dialog>
 
 <script>
-/* ---------- Minimal state + helpers ---------- */
+/* ---------- State ---------- */
 const $ = s => document.querySelector(s);
 
 let state = {
@@ -221,20 +225,25 @@ function updateJSON(){
 $('#getStarted').onclick = () => $('#quick').showModal();
 document.querySelectorAll('[data-close]').forEach(b=> b.onclick = e => e.target.closest('dialog').close());
 
-/* Bind basics */
-$('#servings').addEventListener('change', e=>{
-  state.mealRules.servingsPerRecipe = +e.target.value; updateJSON();
-});
-$('#units').addEventListener('change', e=>{
-  state.meta.units = e.target.value; updateJSON();
-});
-$('#quickNote').addEventListener('input', e=>{
-  state.quickNote = e.target.value.trim(); updateJSON();
-});
+/* ---------- Quick step control ---------- */
+const steps = Array.from(document.querySelectorAll('.qstep'));
+function showQuickStep(n){
+  steps.forEach(s => s.classList.toggle('show', +s.dataset.qstep === n));
+  $('#qTitle').textContent = n===1 ? 'Before we get started…' : 'Customize (optional)';
+}
+$('#qContinue').onclick = ()=> showQuickStep(2);
+$('#qBack').onclick = ()=> showQuickStep(1);
 
-/* ---------- Quick flow ---------- */
+/* Basics bindings */
+$('#servings').addEventListener('change', e=>{ state.mealRules.servingsPerRecipe = +e.target.value; updateJSON(); });
+$('#units').addEventListener('change', e=>{ state.meta.units = e.target.value; updateJSON(); });
+
+/* Custom note live */
+$('#quickNote').addEventListener('input', e=>{ state.quickNote = e.target.value.trim(); updateJSON(); });
+
+/* Quick create */
 $('#doQuick').onclick = ()=>{
-  const chosen = Array.from($('#quick').querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+  const chosen = Array.from(document.querySelectorAll('#quick .checks input:checked')).map(x=>x.value);
   state.quickNote = $('#quickNote').value.trim();
   state.goals = chosen.filter(v=>['save_time','weight_loss','muscle_gain'].includes(v));
   if(chosen.includes('vegetarian')) state.dietary.dietStyle='vegetarian';
@@ -243,13 +252,10 @@ $('#doQuick').onclick = ()=>{
   $('#quickPeek').open = true;
   alert('Plan ready (demo).');
 };
-$('#openHub').onclick = ()=> {
-  buildTiles();
-  updateJSON();
-  $('#hub').showModal();
-};
 
-/* ---------- Topic Hub ---------- */
+/* ---------- Topic Hub (unchanged logic) ---------- */
+$('#openHub').onclick = ()=> { buildTiles(); updateJSON(); $('#hub').showModal(); };
+
 const TOPICS = [
   {id:'goals', label:'Goals', emoji:'🎯'},
   {id:'diet', label:'Diet style', emoji:'🥗'},
@@ -270,25 +276,24 @@ const TOPICS = [
 ];
 
 function buildTiles(){
-  const wrap = $('#tiles'); wrap.innerHTML = '';
+  const wrap = $('#tiles'); wrap.innerHTML='';
   TOPICS.forEach(t=>{
-    const tile = document.createElement('button');
+    const tile=document.createElement('button');
     tile.type='button'; tile.className='tile';
-    tile.innerHTML = `<span>${t.emoji}</span><span>${t.label}</span><span class="badge" id="b-${t.id}" hidden>Set</span>`;
-    tile.onclick = ()=> openTopic(t.id);
+    tile.innerHTML=`<span>${t.emoji}</span><span>${t.label}</span><span class="badge" id="b-${t.id}" hidden>Set</span>`;
+    tile.onclick=()=> openTopic(t.id);
     wrap.appendChild(tile);
   });
-  refreshBadges();
-  clearPanel();
+  refreshBadges(); clearPanel();
 }
-function setBadge(id, on){ const b = $('#b-'+id); if(!b) return; b.hidden = !on; }
+function setBadge(id,on){ const b=$('#b-'+id); if(b) b.hidden=!on; }
 function refreshBadges(){
   setBadge('goals', state.goals.length>0);
-  setBadge('diet', !!state.dietary.dietStyle && state.dietary.dietStyle!=='omnivore');
+  setBadge('diet', state.dietary.dietStyle!=='omnivore');
   setBadge('allergies', state.dietary.allergies.length>0);
   setBadge('avoid', state.dietary.avoid.length>0);
   setBadge('must', state.dietary.mustInclude.length>0);
-  setBadge('time', !!state.mealRules.timePerDinnerMin && state.mealRules.timePerDinnerMin!==30);
+  setBadge('time', state.mealRules.timePerDinnerMin!==30);
   setBadge('variety', state.mealRules.varietyLevel!==7);
   setBadge('skill', state.skillBudget.skillLevel!=='beginner');
   setBadge('budget', state.skillBudget.budgetLevel!=='medium');
@@ -301,7 +306,6 @@ function refreshBadges(){
   setBadge('equipment', state.skillBudget.equipment.length>0);
 }
 
-/* Chips helper */
 function chipField(container, arr, preset, single=false){
   container.innerHTML='';
   const list=[...new Set([...(preset||[]), ...(Array.isArray(arr)?arr:[arr])].filter(Boolean))];
@@ -323,29 +327,19 @@ function chipField(container, arr, preset, single=false){
   return arr;
 }
 
-/* Topic panel render */
-function openTopic(id){
-  currentTopic = id;
-  renderTopic();
-}
-let currentTopic = null;
-
+let currentTopic=null;
+function openTopic(id){ currentTopic=id; renderTopic(); }
 function renderTopic(){
-  if(!currentTopic){ return; }
-  const id = currentTopic;
-  const p = $('#panel'); p.hidden = false; p.innerHTML = '';
-  const head = document.createElement('div');
-  head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='center';
-  head.innerHTML = `<strong>${TOPICS.find(t=>t.id===id)?.label||id}</strong>`;
-  const done = document.createElement('button'); done.className='btn slim alt'; done.textContent='Done';
-  done.onclick = ()=>{ clearPanel(); refreshBadges(); };
-  head.appendChild(done);
-  p.appendChild(head);
+  if(!currentTopic) return;
+  const id=currentTopic; const p=$('#panel'); p.hidden=false; p.innerHTML='';
+  const head=document.createElement('div'); head.style.display='flex'; head.style.justifyContent='space-between'; head.style.alignItems='center';
+  head.innerHTML=`<strong>${TOPICS.find(t=>t.id===id)?.label||id}</strong>`;
+  const done=document.createElement('button'); done.className='btn slim alt'; done.textContent='Done'; done.onclick=()=>{ clearPanel(); refreshBadges(); };
+  head.appendChild(done); p.appendChild(head);
 
-  const box = document.createElement('div');
-
-  const mkChips=(arr, preset, single=false)=>{ const c=document.createElement('div'); c.className='chips'; if(single){ chipField(c, arr, preset, true); } else { chipField(c, arr, preset); } box.appendChild(c); return c; };
-  const mkAdd=(ph, arr)=>{ const add=document.createElement('input'); add.placeholder=ph; add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !arr.includes(v)){ arr.push(v); renderTopic(); updateJSON(); } } }; box.appendChild(add); };
+  const box=document.createElement('div');
+  const mkChips=(arr,preset,single=false)=>{ const c=document.createElement('div'); c.className='chips'; if(single){ chipField(c, arr, preset, true); } else { chipField(c, arr, preset); } box.appendChild(c); return c; };
+  const mkAdd=(ph,arr)=>{ const i=document.createElement('input'); i.placeholder=ph; i.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=i.value.trim().toLowerCase(); if(v && !arr.includes(v)){ arr.push(v); renderTopic(); updateJSON(); } } }; box.appendChild(i); };
 
   switch(id){
     case 'goals': mkChips(state.goals, PRESETS.goals); mkAdd('Add goal (Enter)', state.goals); break;
@@ -353,62 +347,20 @@ function renderTopic(){
     case 'allergies': mkChips(state.dietary.allergies, PRESETS.allergies); mkAdd('Add allergy (Enter)', state.dietary.allergies); break;
     case 'avoid': mkChips(state.dietary.avoid, PRESETS.avoid); mkAdd('Add “never show” (Enter)', state.dietary.avoid); break;
     case 'must': mkChips(state.dietary.mustInclude, PRESETS.must); mkAdd('Add must-include (Enter)', state.dietary.mustInclude); break;
-    case 'time': {
-      const c=document.createElement('div'); c.className='chips';
-      PRESETS.timeOpts.forEach(o=>{
-        const b=document.createElement('button'); b.className='chip'; b.textContent=o.label;
-        b.setAttribute('aria-pressed', String(state.mealRules.timePerDinnerMin===o.val));
-        b.onclick=()=>{ state.mealRules.timePerDinnerMin=o.val; renderTopic(); updateJSON(); };
-        c.appendChild(b);
-      });
-      box.appendChild(c); break;
-    }
-    case 'variety': {
-      box.innerHTML=`<input id="var" type="range" min="0" max="10" value="${state.mealRules.varietyLevel}"/>
-                     <div class="sl">Variety: <span id="vo">${state.mealRules.varietyLevel}</span>/10</div>`;
-      box.querySelector('#var').oninput=e=>{ state.mealRules.varietyLevel=+e.target.value; box.querySelector('#vo').textContent=e.target.value; updateJSON(); };
-      break;
-    }
-    case 'skill': {
-      const c=document.createElement('div'); c.className='chips';
-      PRESETS.skill.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.skillLevel===v)); b.onclick=()=>{ state.skillBudget.skillLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
-      box.appendChild(c); break;
-    }
-    case 'budget': {
-      const c=document.createElement('div'); c.className='chips';
-      PRESETS.budget.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.budgetLevel===v)); b.onclick=()=>{ state.skillBudget.budgetLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
-      box.appendChild(c); break;
-    }
-    case 'leftovers': {
-      const c=document.createElement('div'); c.className='chips';
-      PRESETS.leftovers.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.leftoversPolicy===v)); b.onclick=()=>{ state.mealRules.leftoversPolicy=v; renderTopic(); updateJSON(); }; c.appendChild(b); });
-      box.appendChild(c); break;
-    }
-    case 'servings': {
-      const c=document.createElement('div'); c.className='chips';
-      ['1','2','3','4','5','6'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.servingsPerRecipe===+v)); b.onclick=()=>{ state.mealRules.servingsPerRecipe=+v; renderTopic(); updateJSON(); }; c.appendChild(b); });
-      box.appendChild(c); break;
-    }
+    case 'time': { const c=document.createElement('div'); c.className='chips'; PRESETS.timeOpts.forEach(o=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=o.label; b.setAttribute('aria-pressed', String(state.mealRules.timePerDinnerMin===o.val)); b.onclick=()=>{ state.mealRules.timePerDinnerMin=o.val; renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
+    case 'variety': { box.innerHTML=`<input id="var" type="range" min="0" max="10" value="${state.mealRules.varietyLevel}"/><div class="sl">Variety: <span id="vo">${state.mealRules.varietyLevel}</span>/10</div>`; box.querySelector('#var').oninput=e=>{ state.mealRules.varietyLevel=+e.target.value; box.querySelector('#vo').textContent=e.target.value; updateJSON(); }; break; }
+    case 'skill': { const c=document.createElement('div'); c.className='chips'; PRESETS.skill.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.skillLevel===v)); b.onclick=()=>{ state.skillBudget.skillLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
+    case 'budget': { const c=document.createElement('div'); c.className='chips'; PRESETS.budget.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.skillBudget.budgetLevel===v)); b.onclick=()=>{ state.skillBudget.budgetLevel=v; renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
+    case 'leftovers': { const c=document.createElement('div'); c.className='chips'; PRESETS.leftovers.forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.leftoversPolicy===v)); b.onclick=()=>{ state.mealRules.leftoversPolicy=v; renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
+    case 'servings': { const c=document.createElement('div'); c.className='chips'; ['1','2','3','4','5','6'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=v; b.setAttribute('aria-pressed', String(state.mealRules.servingsPerRecipe===+v)); b.onclick=()=>{ state.mealRules.servingsPerRecipe=+v; renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
     case 'cuisines': mkChips(state.taste.cuisines, PRESETS.cuisines); mkAdd('Add cuisine (Enter)', state.taste.cuisines); break;
-    case 'spice': {
-      box.innerHTML=`<input id="sp" type="range" min="0" max="10" value="${state.taste.spiceTolerance}"/>
-                     <div class="sl">Spice: <span id="so">${state.taste.spiceTolerance}</span>/10</div>`;
-      box.querySelector('#sp').oninput=e=>{ state.taste.spiceTolerance=+e.target.value; box.querySelector('#so').textContent=e.target.value; updateJSON(); };
-      break;
-    }
-    case 'dessert': {
-      const c=document.createElement('div'); c.className='chips';
-      ['allow','no'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=(v==='allow'?'Allow sometimes':'No desserts'); b.setAttribute('aria-pressed', String( (state.taste.allowDesserts && v==='allow') || (!state.taste.allowDesserts && v==='no') )); b.onclick=()=>{ state.taste.allowDesserts=(v==='allow'); renderTopic(); updateJSON(); }; c.appendChild(b); });
-      box.appendChild(c); break;
-    }
+    case 'spice': { box.innerHTML=`<input id="sp" type="range" min="0" max="10" value="${state.taste.spiceTolerance}"/><div class="sl">Spice: <span id="so">${state.taste.spiceTolerance}</span>/10</div>`; box.querySelector('#sp').oninput=e=>{ state.taste.spiceTolerance=+e.target.value; box.querySelector('#so').textContent=e.target.value; updateJSON(); }; break; }
+    case 'dessert': { const c=document.createElement('div'); c.className='chips'; ['allow','no'].forEach(v=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=(v==='allow'?'Allow sometimes':'No desserts'); b.setAttribute('aria-pressed', String( (state.taste.allowDesserts && v==='allow') || (!state.taste.allowDesserts && v==='no') )); b.onclick=()=>{ state.taste.allowDesserts=(v==='allow'); renderTopic(); updateJSON(); }; c.appendChild(b); }); box.appendChild(c); break; }
     case 'proteins': mkChips(state.taste.proteinPrefs, PRESETS.proteins); mkAdd('Add protein (Enter)', state.taste.proteinPrefs); break;
     case 'equipment': mkChips(state.skillBudget.equipment, PRESETS.equipment); mkAdd('Add equipment (Enter)', state.skillBudget.equipment); break;
   }
-
-  p.appendChild(box);
-  updateJSON();
+  p.appendChild(box); updateJSON();
 }
-
 function clearPanel(){ currentTopic=null; const p=$('#panel'); p.hidden=true; p.innerHTML=''; }
 $('#clearPanel').onclick = clearPanel;
 $('#finish').onclick = ()=>{ state.meta.savedAt=new Date().toISOString(); updateJSON(); alert('Preferences ready (demo).'); };
