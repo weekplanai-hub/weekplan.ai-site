@@ -7,429 +7,464 @@
 <link rel="stylesheet" href="/styles.css" />
 <style>
   :root{
-    --ink:#0b1220; --bg:#0b1220; --muted:#9fb1c3;
-    --accent:#6d7cff; --accent2:#3dd1c0; --panel: #0e1624; --border:rgba(255,255,255,.12);
+    --bg:#f7fafc;
+    --card:#ffffff;
+    --ink:#0f172a;
+    --muted:#6b7280;
+    --blue:#2563eb;         /* primary blue */
+    --blue-2:#1d4ed8;       /* darker hover */
+    --ring:rgba(37,99,235,.15);
+    --line:#e5e7eb;
   }
-  html,body{height:100%;margin:0}
-  body{
-    display:grid;place-items:center;background:
-      radial-gradient(1200px 600px at 90% -10%, rgba(109,124,255,.18), transparent 60%),
-      radial-gradient(900px 520px at -10% 95%, rgba(61,209,192,.18), transparent 60%),
-      var(--bg);
-    color:#e8edf3;font:16px/1.4 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  }
-  /* Hero */
-  .hero{text-align:center;max-width:640px;padding:24px}
-  .logo{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:6px;opacity:.95}
-  .dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#7c8aff,#3dd1c0)}
-  h1{margin:.2rem 0 0;font-size:32px;letter-spacing:-.02em}
-  p.sub{margin:.4rem 0 1.2rem;color:#cbd6e2}
-  .cta{
-    border:0;cursor:pointer;padding:16px 22px;border-radius:16px;font-weight:900;
-    background:linear-gradient(135deg,#7c8aff 0%, #3dd1c0 100%);
-    color:#06101c;box-shadow:0 18px 50px rgba(86,144,255,.35);transition:transform .12s ease;
-  }
-  .cta:active{transform:translateY(1px)}
-  .tinylink{margin-top:10px;color:#a9b8ff;text-decoration:underline;cursor:pointer;font-size:.9rem}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .center{min-height:100%;display:grid;place-items:center;padding:18px}
+  .hero{max-width:680px;text-align:center}
+  .brand{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;color:#111}
+  .brand .dot{width:12px;height:12px;border-radius:999px;background:linear-gradient(135deg,#60a5fa,#34d399)}
+  h1{margin:.2rem 0 0;font-size:34px;letter-spacing:-.02em}
+  p.sub{margin:.4rem 0 1.2rem;color:var(--muted)}
 
-  /* Modal (dialog) */
-  dialog{width:100%;max-width:560px;margin:0 auto;border:0;padding:0;background:transparent}
-  dialog::backdrop{background:rgba(2,6,12,.55);backdrop-filter:blur(2px)}
+  .btn{
+    border:0;cursor:pointer;border-radius:14px;
+    font-weight:800;padding:16px 22px;box-shadow:0 10px 26px var(--ring);
+    background:linear-gradient(135deg,#60a5fa,#2563eb);color:#fff;
+  }
+  .btn:active{transform:translateY(1px)}
+  .link{margin-top:10px;color:#2563eb;text-decoration:underline;cursor:pointer;font-size:.95rem}
+
+  /* Modal (bright) */
+  dialog{width:100%;max-width:680px;border:0;padding:0;margin:0 auto;background:transparent}
+  dialog::backdrop{background:rgba(0,0,0,.25)}
   .sheet{
-    background:rgba(14,22,36,.92); border:1px solid var(--border); border-radius:22px;
-    box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,.12);
     overflow:hidden;
   }
-  .head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 6px}
+  .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
   .title{font-weight:900}
-  .close{border:1px solid var(--border);background:transparent;color:#dfe8ff;border-radius:12px;padding:8px 10px;cursor:pointer}
-  .body{padding:8px 16px 16px}
-  .muted{color:#b6c5d5;font-size:.92rem}
+  .close{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 10px;cursor:pointer}
+  .bd{padding:14px 16px}
+  .muted{color:var(--muted)}
 
-  /* Inputs */
-  textarea,input[type="text"],select{
-    width:100%;border:1px solid var(--border);background:#0a1322;color:#e8f1ff;
-    border-radius:14px;padding:12px;outline:none;
+  textarea,input,select{
+    width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;outline:none;
   }
-  textarea::placeholder, input::placeholder{color:#8aa0b5}
-  .checks{display:grid;gap:10px;margin-top:10px}
-  .check{
-    display:flex;align-items:center;gap:10px;background:#0b1526;border:1px solid var(--border);
-    padding:10px 12px;border-radius:12px;
-  }
+  textarea::placeholder,input::placeholder{color:#94a3b8}
+
+  /* quick checks */
+  .checks{display:grid;gap:8px;margin-top:10px}
+  .check{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);padding:10px;border-radius:12px}
+
   .row{display:grid;gap:10px}
   .row.two{grid-template-columns:1fr 1fr}
-  .btn{
-    border:0;cursor:pointer;padding:12px 16px;border-radius:14px;font-weight:800;
-  }
-  .btn.primary{background:linear-gradient(135deg,#7c8aff,#3dd1c0);color:#06101c}
-  .btn.alt{background:#0b1526;color:#dfe8ff;border:1px solid var(--border)}
   .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .btn.alt{background:#eff6ff;color:#1e3a8a;border:1px solid #bfdbfe;box-shadow:none}
+  .btn.slim{padding:10px 14px;border-radius:10px}
 
-  /* Chips + sliders for wizard */
+  /* Topic hub */
+  .hub{display:grid;gap:10px}
+  .tiles{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+  @media(min-width:640px){.tiles{grid-template-columns:1fr 1fr 1fr}}
+  .tile{
+    border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;cursor:pointer;
+    display:flex;gap:10px;align-items:center;transition:box-shadow .12s ease, transform .06s ease;
+  }
+  .tile:hover{box-shadow:0 8px 22px var(--ring)}
+  .tile:active{transform:translateY(1px)}
+  .badge{margin-left:auto;background:#e0e7ff;color:#1e3a8a;border-radius:999px;padding:4px 8px;font-weight:700;font-size:.8rem}
+
+  /* Topic panel (inline) */
+  .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{border:1px solid var(--border);background:#0a1322;color:#d7e7ff;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
-  .chip[aria-pressed="true"]{background:#0f2339;border-color:#3dd1c0;box-shadow:0 6px 16px rgba(61,209,192,.15)}
-  .sliderOut{color:#b6c5d5;font-size:.9rem;margin-top:4px}
-
-  /* Wizard */
-  .progress{height:6px;background:#0a1322;border:1px solid var(--border);border-radius:999px;overflow:hidden}
-  .progress .bar{height:100%;width:0;background:linear-gradient(90deg,#7c8aff,#3dd1c0);transition:width .35s cubic-bezier(.22,1,.36,1)}
-  .step{display:none}
-  .step.show{display:block;animation:fade .22s ease-out}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .chip{border:1px solid var(--line);background:#f8fafc;color:#0f172a;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
+  .chip[aria-pressed="true"]{background:#e0f2fe;border-color:#93c5fd}
+  .sl{margin-top:6px;color:var(--muted);font-size:.9rem}
 
   /* JSON peek */
   details.peek{margin-top:10px}
-  details.peek .box{
-    font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#061023;color:#e6eef9;
-    border:1px solid var(--border);border-radius:14px;padding:12px;max-height:200px;overflow:auto
-  }
+  .peek .box{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#0b1220;color:#e8edf3;border-radius:12px;padding:12px;max-height:200px;overflow:auto}
 </style>
 </head>
 <body>
-
-  <!-- HERO -->
+<div class="center">
   <section class="hero">
-    <div class="logo"><span class="dot"></span><strong>Weekplan.ai</strong></div>
+    <div class="brand"><span class="dot"></span><strong>Weekplan.ai</strong></div>
     <h1>Ready to eat smarter?</h1>
-    <p class="sub">We’ll build a dinner weekplan based on your vibe. Start simple—details come later.</p>
-    <button class="cta" id="getStarted">Get started</button>
-    <div class="tinylink" id="peekJSON">Preview JSON (dev)</div>
+    <p class="sub">Start with one note or choose a few preferences. You can keep it simple or go deep—your call.</p>
+    <button class="btn" id="getStarted">Get started</button>
+    <div class="link" id="peekJSON">Preview JSON (for demo)</div>
   </section>
+</div>
 
-  <!-- QUICK MODAL -->
-  <dialog id="quickDialog">
-    <div class="sheet">
-      <div class="head">
-        <div class="title">Quick preferences</div>
-        <button class="close" data-close>Close</button>
-      </div>
-      <div class="body">
-        <label class="muted">Optional note</label>
-        <textarea id="quickNote" placeholder="e.g., 20-min dinners, love Mediterranean, no mushrooms"></textarea>
-
-        <div class="muted" style="margin-top:10px">Pick any that fit (optional)</div>
-        <div class="checks">
-          <label class="check"><input type="checkbox" value="save_time"> <span>Save time</span></label>
-          <label class="check"><input type="checkbox" value="weight_loss"> <span>Weight loss</span></label>
-          <label class="check"><input type="checkbox" value="muscle_gain"> <span>Muscle gain</span></label>
-          <label class="check"><input type="checkbox" value="vegetarian"> <span>Vegetarian focus</span></label>
-          <label class="check"><input type="checkbox" value="budget_friendly"> <span>Budget friendly</span></label>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" id="quickCreate">Create Plan</button>
-          <button class="btn alt" id="openWizard">Help me find my perfect food plan</button>
-        </div>
-
-        <details class="peek" id="quickPeek">
-          <summary class="muted">JSON preview</summary>
-          <div class="box" id="quickJSON">{ }</div>
-        </details>
-      </div>
+<!-- QUICK DIALOG -->
+<dialog id="quick">
+  <div class="sheet">
+    <div class="hd">
+      <div class="title">Quick start</div>
+      <button class="close" data-close>Close</button>
     </div>
-  </dialog>
+    <div class="bd">
+      <label class="muted">Optional note</label>
+      <textarea id="quickNote" placeholder="e.g., 20-min dinners • love Mediterranean • no mushrooms"></textarea>
 
-  <!-- WIZARD MODAL -->
-  <dialog id="wizardDialog">
-    <div class="sheet">
-      <div class="head">
-        <div class="title">Find your perfect plan</div>
-        <button class="close" data-close>Close</button>
+      <div class="muted" style="margin-top:10px">Pick any (optional)</div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" value="save_time"> Save time</label>
+        <label class="check"><input type="checkbox" value="weight_loss"> Weight loss</label>
+        <label class="check"><input type="checkbox" value="muscle_gain"> Muscle gain</label>
+        <label class="check"><input type="checkbox" value="vegetarian"> Vegetarian focus</label>
+        <label class="check"><input type="checkbox" value="budget_friendly"> Budget friendly</label>
       </div>
-      <div class="body">
-        <div class="progress" style="margin-bottom:10px"><div class="bar" id="wBar"></div></div>
 
-        <!-- Step 1: Goals -->
-        <div class="step show" data-step="1">
-          <h3>🎯 Goals</h3>
-          <p class="muted">Tap a few that matter</p>
-          <div class="chips" id="goalsChips"></div>
-          <input id="goalsFree" placeholder="Add a goal (Enter)" />
-        </div>
-
-        <!-- Step 2: Diet & Rules -->
-        <div class="step" data-step="2">
-          <h3>🥗 Diet & rules</h3>
-          <div class="muted">Diet style</div>
-          <div class="chips" id="dietChips"></div>
-
-          <div class="muted" style="margin-top:10px">Allergies (tap to toggle)</div>
-          <div class="chips" id="allergyChips"></div>
-          <input id="allergyFree" placeholder="Add allergy (Enter)" />
-
-          <div class="muted" style="margin-top:10px">Never show</div>
-          <div class="chips" id="avoidChips"></div>
-          <input id="avoidFree" placeholder="Add item to avoid (Enter)" />
-
-          <div class="muted" style="margin-top:10px">Must include</div>
-          <div class="chips" id="mustChips"></div>
-          <input id="mustFree" placeholder="Add must-include (Enter)" />
-        </div>
-
-        <!-- Step 3: Time & Skill -->
-        <div class="step" data-step="3">
-          <h3>⏱️ Time & skill</h3>
-          <div class="muted">Time per dinner</div>
-          <div class="chips" id="timeChips"></div>
-
-          <div class="muted" style="margin-top:10px">Variety vs repetition</div>
-          <input id="variety" type="range" min="0" max="10" value="7" />
-          <div class="sliderOut">Variety: <span id="varietyOut">7</span>/10</div>
-
-          <div class="muted" style="margin-top:10px">Skill • Budget • Leftovers • Servings</div>
-          <div class="chips" id="skillChips"></div>
-          <div class="chips" id="budgetChips"></div>
-          <div class="chips" id="leftoverChips"></div>
-          <div class="chips" id="servingChips"></div>
-        </div>
-
-        <!-- Step 4: Taste & Cuisines -->
-        <div class="step" data-step="4">
-          <h3>🍽️ Taste & cuisines</h3>
-          <div class="muted">Cuisines you like</div>
-          <div class="chips" id="cuisineChips"></div>
-          <input id="cuisineFree" placeholder="Add cuisine (Enter)" />
-          <div class="muted" style="margin-top:10px">Spice tolerance</div>
-          <input id="spice" type="range" min="0" max="10" value="5" />
-          <div class="sliderOut">Spice: <span id="spiceOut">5</span>/10</div>
-          <div class="muted" style="margin-top:10px">Desserts & Proteins</div>
-          <div class="chips" id="dessertChips"></div>
-          <div class="chips" id="proteinChips"></div>
-          <input id="proteinFree" placeholder="Add protein (Enter)" />
-        </div>
-
-        <!-- Step 5: Equipment -->
-        <div class="step" data-step="5">
-          <h3>🔧 Equipment (optional)</h3>
-          <div class="chips" id="equipChips"></div>
-          <input id="equipFree" placeholder="Add equipment (Enter)" />
-        </div>
-
-        <div class="actions">
-          <button class="btn alt" id="wBack">Back</button>
-          <button class="btn primary" id="wNext">Next</button>
-          <button class="btn primary" id="wCreate" style="display:none">Create Plan</button>
-        </div>
-
-        <details class="peek">
-          <summary class="muted">JSON preview</summary>
-          <div class="box" id="wizJSON">{ }</div>
-        </details>
+      <div class="actions">
+        <button class="btn" id="doQuick">Create Plan</button>
+        <button class="btn alt" id="openHub">Help me find my perfect food plan</button>
       </div>
+
+      <details class="peek" id="quickPeek">
+        <summary class="muted">JSON preview</summary>
+        <div class="box" id="quickJSON">{ }</div>
+      </details>
     </div>
-  </dialog>
+  </div>
+</dialog>
+
+<!-- HUB / TOPIC DIALOG -->
+<dialog id="hub">
+  <div class="sheet">
+    <div class="hd">
+      <div class="title">Tweak what matters (optional)</div>
+      <button class="close" data-close>Close</button>
+    </div>
+    <div class="bd hub">
+      <p class="muted" style="margin:0">Choose a topic to adjust. You can do one or many, then tap <b>Done for now</b>.</p>
+
+      <div class="tiles" id="tiles">
+        <!-- tiles are injected -->
+      </div>
+
+      <div id="panel" class="panel" hidden>
+        <!-- dynamic topic UI renders here -->
+      </div>
+
+      <div class="actions">
+        <button class="btn slim alt" id="clearPanel">Back to topics</button>
+        <button class="btn" id="finish">Done for now</button>
+      </div>
+
+      <details class="peek">
+        <summary class="muted">JSON preview</summary>
+        <div class="box" id="hubJSON">{ }</div>
+      </details>
+    </div>
+  </div>
+</dialog>
 
 <script>
-/* ---------- minimal state (no backend) ---------- */
+/* ---------- Minimal state + helpers ---------- */
+const $ = s => document.querySelector(s);
+
+let state = {
+  profileVersion:1,
+  quickNote:'',
+  goals:[],
+  dietary:{dietStyle:'omnivore',allergies:[],intolerances:[],avoid:[],mustInclude:[]},
+  taste:{cuisines:[],spiceTolerance:5,allowDesserts:true,proteinPrefs:[]},
+  mealRules:{focusMeals:'dinner',servingsPerRecipe:2,leftoversPolicy:'none',timePerDinnerMin:30,varietyLevel:7},
+  skillBudget:{skillLevel:'beginner',budgetLevel:'medium',equipment:[]},
+  meta:{device:'web',savedAt:null}
+};
+
 const PRESETS = {
   goals:['save_time','weight_loss','muscle_gain','enjoyment','learn_to_cook','consistency'],
   diet:['omnivore','vegetarian','vegan','pescatarian','flexitarian','keto','mediterranean'],
   allergies:['peanuts','lactose','gluten','shellfish','soy','eggs'],
   avoid:['mushrooms','olives','cilantro'],
   must:['chicken','rice','beans'],
-  time:['≤20 min','~30 min','45+ min'],
+  cuisines:['mediterranean','mexican','italian','indian','thai','japanese','nordic'],
+  proteins:['chicken','fish','salmon','tofu','lentils','beans','eggs'],
+  equipment:['stovetop','oven','microwave','air_fryer','slow_cooker','blender','pressure_cooker'],
   skill:['beginner','intermediate','advanced'],
   budget:['low','medium','high'],
   leftovers:['none','ok_for_lunch','prefer_leftovers'],
   servings:['1','2','4'],
-  cuisines:['mediterranean','mexican','italian','indian','thai','japanese','nordic'],
-  dessert:['allow','no'],
-  proteins:['chicken','fish','salmon','tofu','lentils','beans','eggs'],
-  equipment:['stovetop','oven','microwave','air_fryer','slow_cooker','blender','pressure_cooker']
+  timeOpts:[{label:'≤20 min',val:20},{label:'~30 min',val:30},{label:'45+ min',val:45}]
 };
 
-let state = {
-  profileVersion:1,
-  quickNote:'',
-  goals:[],
-  dietary:{ dietStyle:'omnivore', allergies:[], intolerances:[], avoid:[], mustInclude:[] },
-  taste:{ cuisines:[], spiceTolerance:5, allowDesserts:true, proteinPrefs:[] },
-  mealRules:{ focusMeals:'dinner', servingsPerRecipe:2, leftoversPolicy:'none', timePerDinnerMin:30, varietyLevel:7 },
-  skillBudget:{ skillLevel:'beginner', budgetLevel:'medium', equipment:[] },
-  meta:{ device:'web', savedAt:null }
-};
-
-const $ = s => document.querySelector(s);
-
-/* ----- Landing actions ----- */
-$('#getStarted').onclick = ()=> $('#quickDialog').showModal();
-$('#peekJSON').onclick = ()=> alert(JSON.stringify(exportObj(), null, 2));
-
-/* Close buttons */
-document.querySelectorAll('[data-close]').forEach(b=> b.onclick = e => e.target.closest('dialog').close());
-
-/* ----- Quick modal ----- */
-const quickDialog = $('#quickDialog');
-const quickChecks = Array.from(quickDialog.querySelectorAll('input[type="checkbox"]'));
-$('#quickCreate').onclick = ()=>{
-  // map quick checkboxes into goals/diet flags
-  const chosen = quickChecks.filter(c=>c.checked).map(c=>c.value);
-  state.quickNote = $('#quickNote').value.trim();
-  state.goals = chosen.filter(v=>['save_time','weight_loss','muscle_gain'].includes(v));
-  if(chosen.includes('vegetarian')) state.dietary.dietStyle='vegetarian';
-  if(chosen.includes('budget_friendly')) state.skillBudget.budgetLevel='low';
-  updateJSONViews();
-  $('#quickPeek').open = true;
-  alert('Plan ready (demo). Use JSON preview to inspect.');
-};
-
-$('#openWizard').onclick = ()=>{
-  // seed from quick choices
-  const chosen = quickChecks.filter(c=>c.checked).map(c=>c.value);
-  state.quickNote = $('#quickNote').value.trim();
-  if(chosen.includes('vegetarian')) state.dietary.dietStyle='vegetarian';
-  if(chosen.includes('budget_friendly')) state.skillBudget.budgetLevel='low';
-  if(chosen.includes('save_time') && !state.goals.includes('save_time')) state.goals.push('save_time');
-  updateJSONViews();
-  $('#wizardDialog').showModal();
-};
-
-/* ----- Wizard ----- */
-const steps = Array.from(document.querySelectorAll('#wizardDialog .step'));
-let cur = 1;
-const total = steps.length;
-const wBar = $('#wBar');
-function showStep(n){
-  cur = Math.max(1, Math.min(total, n));
-  steps.forEach(s=> s.classList.toggle('show', +s.dataset.step===cur));
-  wBar.style.width = ((cur-1)/(total-1))*100 + '%';
-  $('#wBack').style.visibility = (cur===1) ? 'hidden' : 'visible';
-  $('#wNext').style.display  = (cur===total) ? 'none'   : 'inline-block';
-  $('#wCreate').style.display= (cur===total) ? 'inline-block' : 'none';
-}
-$('#wBack').onclick = ()=> showStep(cur-1);
-$('#wNext').onclick = ()=> showStep(cur+1);
-$('#wCreate').onclick = ()=>{
-  state.meta.savedAt = new Date().toISOString();
-  updateJSONViews();
-  alert('Plan ready (demo).');
-};
-
-/* Chips builder */
-function chipField(containerId, targetArr, preset){
-  const c = $('#'+containerId);
-  const render=()=>{
-    c.innerHTML='';
-    const list=[...new Set([...preset, ...targetArr])];
-    list.forEach(v=>{
-      const b=document.createElement('button');
-      b.type='button'; b.className='chip'; b.textContent=v;
-      b.setAttribute('aria-pressed', String(targetArr.includes(v)));
-      b.onclick=()=>{ const i=targetArr.indexOf(v); if(i>=0) targetArr.splice(i,1); else targetArr.push(v); render(); updateJSONViews(); };
-      c.appendChild(b);
-    });
-  };
-  render();
-  return { render };
-}
-function addOnEnter(inputId, arr, containerId){
-  $('#'+inputId).addEventListener('keydown', e=>{
-    if(e.key==='Enter'){
-      e.preventDefault();
-      const v=e.currentTarget.value.trim().toLowerCase();
-      if(v && !arr.includes(v)){ arr.push(v); e.currentTarget.value=''; chipField(containerId, arr, []).render(); updateJSONViews(); }
-    }
-  });
-}
-
-/* Build wizard fields */
-chipField('goalsChips', state.goals, PRESETS.goals);
-addOnEnter('goalsFree', state.goals, 'goalsChips');
-
-const dietSel = chipField('dietChips', [state.dietary.dietStyle], PRESETS.diet);
-$('#dietChips').addEventListener('click', e=>{
-  const v = e.target.textContent;
-  if(PRESETS.diet.includes(v)){ state.dietary.dietStyle = v; dietSel.render(); updateJSONViews(); }
-});
-
-chipField('allergyChips', state.dietary.allergies, PRESETS.allergies);
-addOnEnter('allergyFree', state.dietary.allergies, 'allergyChips');
-
-chipField('avoidChips', state.dietary.avoid, PRESETS.avoid);
-addOnEnter('avoidFree', state.dietary.avoid, 'avoidChips');
-
-chipField('mustChips', state.dietary.mustInclude, PRESETS.must);
-addOnEnter('mustFree', state.dietary.mustInclude, 'mustChips');
-
-const timeMap = {'≤20 min':20,'~30 min':30,'45+ min':45};
-const timeSel = chipField('timeChips', [], PRESETS.time);
-$('#timeChips').addEventListener('click', e=>{
-  const v=e.target.textContent; if(!PRESETS.time.includes(v)) return;
-  state.mealRules.timePerDinnerMin = timeMap[v];
-  // single-select styling
-  Array.from($('#timeChips').children).forEach(b=>b.setAttribute('aria-pressed', String(b.textContent===v)));
-  updateJSONViews();
-});
-
-chipField('skillChips', [state.skillBudget.skillLevel], PRESETS.skill);
-$('#skillChips').addEventListener('click', e=>{
-  const v=e.target.textContent;if(PRESETS.skill.includes(v)){ state.skillBudget.skillLevel=v; chipField('skillChips',[v],PRESETS.skill); updateJSONViews();}
-});
-
-chipField('budgetChips', [state.skillBudget.budgetLevel], PRESETS.budget);
-$('#budgetChips').addEventListener('click', e=>{
-  const v=e.target.textContent;if(PRESETS.budget.includes(v)){ state.skillBudget.budgetLevel=v; chipField('budgetChips',[v],PRESETS.budget); updateJSONViews();}
-});
-
-chipField('leftoverChips', [state.mealRules.leftoversPolicy], PRESETS.leftovers);
-$('#leftoverChips').addEventListener('click', e=>{
-  const v=e.target.textContent;if(PRESETS.leftovers.includes(v)){ state.mealRules.leftoversPolicy=v; chipField('leftoverChips',[v],PRESETS.leftovers); updateJSONViews();}
-});
-
-chipField('servingChips', [String(state.mealRules.servingsPerRecipe)], PRESETS.servings);
-$('#servingChips').addEventListener('click', e=>{
-  const v=e.target.textContent;if(PRESETS.servings.includes(v)){ state.mealRules.servingsPerRecipe=+v; chipField('servingChips',[v],PRESETS.servings); updateJSONViews();}
-});
-
-chipField('cuisineChips', state.taste.cuisines, PRESETS.cuisines);
-addOnEnter('cuisineFree', state.taste.cuisines, 'cuisineChips');
-
-$('#variety').addEventListener('input', e=>{
-  state.mealRules.varietyLevel=+e.target.value; $('#varietyOut').textContent=e.target.value; updateJSONViews();
-});
-$('#spice').addEventListener('input', e=>{
-  state.taste.spiceTolerance=+e.target.value; $('#spiceOut').textContent=e.target.value; updateJSONViews();
-});
-
-const dessertSel = chipField('dessertChips', [state.taste.allowDesserts?'allow':'no'], PRESETS.dessert);
-$('#dessertChips').addEventListener('click', e=>{
-  const v=e.target.textContent;
-  if(PRESETS.dessert.includes(v)){ state.taste.allowDesserts = (v==='allow'); dessertSel.render(); updateJSONViews(); }
-});
-
-chipField('proteinChips', state.taste.proteinPrefs, PRESETS.proteins);
-addOnEnter('proteinFree', state.taste.proteinPrefs, 'proteinChips');
-
-chipField('equipChips', state.skillBudget.equipment, PRESETS.equipment);
-addOnEnter('equipFree', state.skillBudget.equipment, 'equipChips');
-
-/* JSON builders */
 function exportObj(){
   return {
     profileVersion:1,
     quickNote: state.quickNote,
     goals:[...state.goals],
-    dietary:{ ...state.dietary },
-    taste:{ ...state.taste, allowDesserts: !!state.taste.allowDesserts },
-    mealRules:{ ...state.mealRules },
-    skillBudget:{ ...state.skillBudget },
-    meta:{ device:'web', savedAt:new Date().toISOString() }
+    dietary:{...state.dietary},
+    taste:{...state.taste, allowDesserts: !!state.taste.allowDesserts},
+    mealRules:{...state.mealRules},
+    skillBudget:{...state.skillBudget},
+    meta:{device:'web', savedAt:new Date().toISOString()}
   };
 }
-function updateJSONViews(){
+function updateJSON(){
   $('#quickJSON').textContent = JSON.stringify(exportObj(), null, 2);
-  $('#wizJSON').textContent   = JSON.stringify(exportObj(), null, 2);
+  $('#hubJSON').textContent   = JSON.stringify(exportObj(), null, 2);
 }
 
-/* Start wizard at step 1 */
-showStep(1);
-updateJSONViews();
+/* ---------- Landing ---------- */
+$('#getStarted').onclick = () => $('#quick').showModal();
+$('#peekJSON').onclick = () => alert(JSON.stringify(exportObj(), null, 2));
+document.querySelectorAll('[data-close]').forEach(b=> b.onclick = e => e.target.closest('dialog').close());
 
-/* Keep JSON updated from quick modal textarea live */
-$('#quickNote').addEventListener('input', e=>{ state.quickNote = e.target.value.trim(); updateJSONViews(); });
+/* ---------- Quick flow ---------- */
+$('#doQuick').onclick = ()=>{
+  const chosen = Array.from($('#quick').querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+  state.quickNote = $('#quickNote').value.trim();
+  state.goals = chosen.filter(v=>['save_time','weight_loss','muscle_gain'].includes(v));
+  if(chosen.includes('vegetarian')) state.dietary.dietStyle='vegetarian';
+  if(chosen.includes('budget_friendly')) state.skillBudget.budgetLevel='low';
+  updateJSON();
+  $('#quickPeek').open = true;
+  alert('Plan ready (demo).');
+};
+$('#openHub').onclick = ()=> {
+  state.quickNote = $('#quickNote').value.trim();
+  buildTiles();
+  updateJSON();
+  $('#hub').showModal();
+};
 
+/* ---------- Topic Hub ---------- */
+const TOPICS = [
+  {id:'goals', label:'Goals', emoji:'🎯'},
+  {id:'diet', label:'Diet style', emoji:'🥗'},
+  {id:'allergies', label:'Allergies', emoji:'⚠️'},
+  {id:'avoid', label:'Never show', emoji:'🚫'},
+  {id:'must', label:'Must include', emoji:'✅'},
+  {id:'time', label:'Time per dinner', emoji:'⏱️'},
+  {id:'variety', label:'Variety', emoji:'🔁'},
+  {id:'skill', label:'Skill', emoji:'🧑‍🍳'},
+  {id:'budget', label:'Budget', emoji:'💸'},
+  {id:'leftovers', label:'Leftovers', emoji:'🍱'},
+  {id:'servings', label:'Servings', emoji:'🍽️'},
+  {id:'cuisines', label:'Cuisines', emoji:'🍜'},
+  {id:'spice', label:'Spice', emoji:'🌶️'},
+  {id:'dessert', label:'Desserts', emoji:'🍨'},
+  {id:'proteins', label:'Proteins', emoji:'🍗'},
+  {id:'equipment', label:'Equipment', emoji:'🔧'}
+];
+
+function buildTiles(){
+  const wrap = $('#tiles'); wrap.innerHTML = '';
+  TOPICS.forEach(t=>{
+    const tile = document.createElement('button');
+    tile.type='button'; tile.className='tile';
+    tile.innerHTML = `<span>${t.emoji}</span><span>${t.label}</span><span class="badge" id="b-${t.id}" hidden>Set</span>`;
+    tile.onclick = ()=> openTopic(t.id);
+    wrap.appendChild(tile);
+  });
+  refreshBadges();
+  clearPanel();
+}
+function setBadge(id, on){ const b = $('#b-'+id); if(!b) return; b.hidden = !on; }
+function refreshBadges(){
+  setBadge('goals', state.goals.length>0);
+  setBadge('diet', !!state.dietary.dietStyle && state.dietary.dietStyle!=='omnivore');
+  setBadge('allergies', state.dietary.allergies.length>0);
+  setBadge('avoid', state.dietary.avoid.length>0);
+  setBadge('must', state.dietary.mustInclude.length>0);
+  setBadge('time', !!state.mealRules.timePerDinnerMin && state.mealRules.timePerDinnerMin!==30);
+  setBadge('variety', state.mealRules.varietyLevel!==7);
+  setBadge('skill', state.skillBudget.skillLevel!=='beginner');
+  setBadge('budget', state.skillBudget.budgetLevel!=='medium');
+  setBadge('leftovers', state.mealRules.leftoversPolicy!=='none');
+  setBadge('servings', state.mealRules.servingsPerRecipe!==2);
+  setBadge('cuisines', state.taste.cuisines.length>0);
+  setBadge('spice', state.taste.spiceTolerance!==5);
+  setBadge('dessert', state.taste.allowDesserts===false);
+  setBadge('proteins', state.taste.proteinPrefs.length>0);
+  setBadge('equipment', state.skillBudget.equipment.length>0);
+}
+
+/* Chips helper */
+function chipField(container, arr, preset, single=false, mapOut=v=>v){
+  container.innerHTML='';
+  const list=[...new Set([...(preset||[]), ...(arr||[])])];
+  list.forEach(v=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='chip'; b.textContent=v.label||v;
+    const isOn = single ? ( (arr && (arr===v || arr===mapOut(v))) ) : (arr||[]).includes(mapOut(v));
+    b.setAttribute('aria-pressed', String(isOn));
+    b.onclick=()=>{
+      if(single){
+        // store directly
+        arr = mapOut(v);
+      }else{
+        const val = mapOut(v);
+        const i=(arr||[]).indexOf(val);
+        if(i>=0) arr.splice(i,1); else (arr||[]).push(val);
+      }
+      render(); // re-render topic panel
+      updateJSON(); refreshBadges();
+    };
+    container.appendChild(b);
+  });
+  return arr;
+}
+
+/* Topic renderers */
+function openTopic(id){
+  const p = $('#panel'); p.hidden = false; p.innerHTML = '';
+  const h = (title, content)=>{ p.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px">
+    <strong>${title}</strong>
+    <button class="btn slim alt" id="doneTopic">Done</button>
+  </div>`; p.appendChild(content); $('#doneTopic').onclick=()=>{ clearPanel(); refreshBadges(); }; };
+
+  let box = document.createElement('div');
+
+  switch(id){
+    case 'goals':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.goals = chipField(chips, state.goals, PRESETS.goals);
+      const add=document.createElement('input'); add.placeholder='Add goal (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.goals.includes(v)){ state.goals.push(v); openTopic('goals'); updateJSON(); refreshBadges(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Goals', box); break;
+    }
+    case 'diet':{
+      const chips=document.createElement('div'); chips.className='chips';
+      // single-select diet
+      chipField(chips, state.dietary.dietStyle, PRESETS.diet, true, v=>v);
+      chips.onclick=e=>{
+        const v=e.target.textContent;
+        if(PRESETS.diet.includes(v)){ state.dietary.dietStyle=v; updateJSON(); refreshBadges(); openTopic('diet'); }
+      };
+      box.appendChild(chips); h('Diet style', box); break;
+    }
+    case 'allergies':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.dietary.allergies = chipField(chips, state.dietary.allergies, PRESETS.allergies);
+      const add=document.createElement('input'); add.placeholder='Add allergy (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.allergies.includes(v)){ state.dietary.allergies.push(v); openTopic('allergies'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Allergies', box); break;
+    }
+    case 'avoid':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.dietary.avoid = chipField(chips, state.dietary.avoid, PRESETS.avoid);
+      const add=document.createElement('input'); add.placeholder='Add “never show” (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.avoid.includes(v)){ state.dietary.avoid.push(v); openTopic('avoid'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Never show', box); break;
+    }
+    case 'must':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.dietary.mustInclude = chipField(chips, state.dietary.mustInclude, PRESETS.must);
+      const add=document.createElement('input'); add.placeholder='Add must-include (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.dietary.mustInclude.includes(v)){ state.dietary.mustInclude.push(v); openTopic('must'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Must include', box); break;
+    }
+    case 'time':{
+      const chips=document.createElement('div'); chips.className='chips';
+      PRESETS.timeOpts.forEach(o=>{
+        const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=o.label;
+        b.setAttribute('aria-pressed', String(state.mealRules.timePerDinnerMin===o.val));
+        b.onclick=()=>{ state.mealRules.timePerDinnerMin=o.val; openTopic('time'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Time per dinner', box); break;
+    }
+    case 'variety':{
+      const slider=document.createElement('div');
+      slider.innerHTML=`<input id="var" type="range" min="0" max="10" value="${state.mealRules.varietyLevel}" />
+                        <div class="sl">Variety: <span id="vo">${state.mealRules.varietyLevel}</span>/10</div>`;
+      slider.querySelector('#var').oninput=e=>{ state.mealRules.varietyLevel=+e.target.value; slider.querySelector('#vo').textContent=e.target.value; updateJSON(); refreshBadges(); };
+      box.appendChild(slider); h('Variety vs repetition', box); break;
+    }
+    case 'skill':{
+      const chips=document.createElement('div'); chips.className='chips';
+      PRESETS.skill.forEach(v=>{
+        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
+        b.setAttribute('aria-pressed', String(state.skillBudget.skillLevel===v));
+        b.onclick=()=>{ state.skillBudget.skillLevel=v; openTopic('skill'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Cooking skill', box); break;
+    }
+    case 'budget':{
+      const chips=document.createElement('div'); chips.className='chips';
+      PRESETS.budget.forEach(v=>{
+        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
+        b.setAttribute('aria-pressed', String(state.skillBudget.budgetLevel===v));
+        b.onclick=()=>{ state.skillBudget.budgetLevel=v; openTopic('budget'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Budget', box); break;
+    }
+    case 'leftovers':{
+      const chips=document.createElement('div'); chips.className='chips';
+      PRESETS.leftovers.forEach(v=>{
+        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
+        b.setAttribute('aria-pressed', String(state.mealRules.leftoversPolicy===v));
+        b.onclick=()=>{ state.mealRules.leftoversPolicy=v; openTopic('leftovers'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Leftovers policy', box); break;
+    }
+    case 'servings':{
+      const chips=document.createElement('div'); chips.className='chips';
+      PRESETS.servings.forEach(v=>{
+        const b=document.createElement('button'); b.className='chip'; b.textContent=v;
+        b.setAttribute('aria-pressed', String(state.mealRules.servingsPerRecipe===+v));
+        b.onclick=()=>{ state.mealRules.servingsPerRecipe=+v; openTopic('servings'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Servings per recipe', box); break;
+    }
+    case 'cuisines':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.taste.cuisines = chipField(chips, state.taste.cuisines, PRESETS.cuisines);
+      const add=document.createElement('input'); add.placeholder='Add cuisine (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.taste.cuisines.includes(v)){ state.taste.cuisines.push(v); openTopic('cuisines'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Cuisines', box); break;
+    }
+    case 'spice':{
+      const slider=document.createElement('div');
+      slider.innerHTML=`<input id="sp" type="range" min="0" max="10" value="${state.taste.spiceTolerance}" />
+                        <div class="sl">Spice: <span id="so">${state.taste.spiceTolerance}</span>/10</div>`;
+      slider.querySelector('#sp').oninput=e=>{ state.taste.spiceTolerance=+e.target.value; slider.querySelector('#so').textContent=e.target.value; updateJSON(); refreshBadges(); };
+      box.appendChild(slider); h('Spice tolerance', box); break;
+    }
+    case 'dessert':{
+      const chips=document.createElement('div'); chips.className='chips';
+      ['allow','no'].forEach(v=>{
+        const b=document.createElement('button'); b.className='chip'; b.textContent=(v==='allow'?'Allow sometimes':'No desserts');
+        b.setAttribute('aria-pressed', String( (state.taste.allowDesserts && v==='allow') || (!state.taste.allowDesserts && v==='no') ));
+        b.onclick=()=>{ state.taste.allowDesserts = (v==='allow'); openTopic('dessert'); updateJSON(); refreshBadges(); };
+        chips.appendChild(b);
+      });
+      box.appendChild(chips); h('Desserts', box); break;
+    }
+    case 'proteins':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.taste.proteinPrefs = chipField(chips, state.taste.proteinPrefs, PRESETS.proteins);
+      const add=document.createElement('input'); add.placeholder='Add protein (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.taste.proteinPrefs.includes(v)){ state.taste.proteinPrefs.push(v); openTopic('proteins'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Preferred proteins', box); break;
+    }
+    case 'equipment':{
+      const chips=document.createElement('div'); chips.className='chips';
+      state.skillBudget.equipment = chipField(chips, state.skillBudget.equipment, PRESETS.equipment);
+      const add=document.createElement('input'); add.placeholder='Add equipment (Enter)';
+      add.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=add.value.trim().toLowerCase(); if(v && !state.skillBudget.equipment.includes(v)){ state.skillBudget.equipment.push(v); openTopic('equipment'); updateJSON(); } } };
+      box.appendChild(chips); box.appendChild(add); h('Equipment', box); break;
+    }
+  }
+  updateJSON();
+}
+function clearPanel(){ const p=$('#panel'); p.hidden=true; p.innerHTML=''; }
+$('#clearPanel').onclick = clearPanel;
+$('#finish').onclick = ()=>{ state.meta.savedAt=new Date().toISOString(); updateJSON(); alert('Preferences ready (demo).'); };
+
+/* keep JSON in sync with quick note live */
+$('#quickNote').addEventListener('input', e=>{ state.quickNote=e.target.value.trim(); updateJSON(); });
+
+/* Init */
+updateJSON();
 </script>
 </body>
 </html>
