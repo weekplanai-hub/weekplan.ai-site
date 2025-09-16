@@ -333,4 +333,221 @@
       bindTA('quickNote', v => { state.quickNote = v; live(); });
 
       bindSel('dietStyle', v => { state.dietary.dietStyle = v; live(); });
-      bindNum('servings', v => { sta
+      bindNum('servings', v => { state.mealRules.servingsPerRecipe = v; live(); });
+      bindCSV('allergies', arr => { state.dietary.allergies = arr; live(); }, [';']);
+      bindCSV('avoid', arr => { state.dietary.avoid = arr; live(); }, [',',';']);
+      bindCSV('mustInclude', arr => { state.dietary.mustInclude = arr; live(); }, [',',';']);
+
+      bindSel('leftovers', v => { state.mealRules.leftoversPolicy = v; live(); });
+      bindSel('focusMeals', v => { state.mealRules.focusMeals = v; live(); });
+
+      bindNum('timePerDinner', v => { state.mealRules.timePerDinnerMin = v; live(); });
+      bindRange('variety', v => { state.mealRules.varietyLevel = v; live(); }, 'varietyOut');
+
+      bindSel('skill', v => { state.skillBudget.skillLevel = v; live(); });
+      bindSel('budget', v => { state.skillBudget.budgetLevel = v; live(); });
+
+      bindRange('spice', v => { state.taste.spiceTolerance = v; live(); }, 'spiceOut');
+      bindSel('desserts', v => { state.taste.allowDesserts = (v !== 'no'); live(); });
+      bindCSV('proteins', arr => { state.taste.proteinPrefs = arr; live(); }, [',',';']);
+
+      // Actions
+      document.getElementById('startBtn').onclick = demoSubmit;
+      document.getElementById('saveBtn').onclick = savePrefs;
+      document.getElementById('copyBtn').onclick = copyJSON;
+      document.getElementById('downloadBtn').onclick = downloadJSON;
+
+      document.getElementById('useSavedBtn').onclick = () => {
+        try{
+          const obj = JSON.parse(localStorage.getItem('wp_prefs'));
+          if(obj){ state = obj; refillUI(); live(); }
+        }catch{}
+      };
+      document.getElementById('discardSavedBtn').onclick = () => {
+        localStorage.removeItem('wp_prefs');
+        document.getElementById('returnBanner').hidden = true;
+      };
+
+      document.getElementById('demoSelect').onchange = e => loadDemo(e.target.value);
+      document.getElementById('resetBtn').onclick = () => { state = freshState(); refillUI(true); live(); };
+      document.getElementById('clearStorageBtn').onclick = () => { localStorage.removeItem('wp_prefs'); alert('Cleared saved preferences.'); document.getElementById('returnBanner').hidden = true; };
+
+      // Initial preview
+      live();
+    }
+
+    function freshState(){
+      return {
+        profileVersion: 1,
+        quickNote: '',
+        goals: [],
+        dietary: { dietStyle:'omnivore', allergies:[], intolerances:[], avoid:[], mustInclude:[] },
+        taste: { cuisines:[], spiceTolerance:5, allowDesserts:true, proteinPrefs:[] },
+        mealRules: { focusMeals:'dinner', servingsPerRecipe:2, leftoversPolicy:'none', timePerDinnerMin:30, varietyLevel:7 },
+        skillBudget: { skillLevel:'beginner', budgetLevel:'medium', equipment:[] },
+        meta: { device:'web', savedAt:null }
+      };
+    }
+
+    // ------- Build export -------
+    function exportObj(){
+      return {
+        profileVersion: state.profileVersion,
+        quickNote: state.quickNote?.trim() || '',
+        goals: [...state.goals],
+        dietary: {
+          dietStyle: state.dietary.dietStyle,
+          allergies: state.dietary.allergies,
+          intolerances: state.dietary.intolerances,
+          avoid: state.dietary.avoid,
+          mustInclude: state.dietary.mustInclude
+        },
+        taste: {
+          cuisines: state.taste.cuisines,
+          spiceTolerance: state.taste.spiceTolerance,
+          allowDesserts: !!state.taste.allowDesserts,
+          proteinPrefs: state.taste.proteinPrefs
+        },
+        mealRules: {
+          focusMeals: state.mealRules.focusMeals,
+          servingsPerRecipe: state.mealRules.servingsPerRecipe,
+          leftoversPolicy: state.mealRules.leftoversPolicy,
+          timePerDinnerMin: state.mealRules.timePerDinnerMin,
+          varietyLevel: state.mealRules.varietyLevel
+        },
+        skillBudget: {
+          skillLevel: state.skillBudget.skillLevel,
+          budgetLevel: state.skillBudget.budgetLevel,
+          equipment: state.skillBudget.equipment
+        },
+        meta: { device:'web', savedAt: new Date().toISOString() }
+      };
+    }
+
+    // ------- UI helpers -------
+    function $(s){return document.querySelector(s);}
+    function makeChips(containerId, preset, targetArr){
+      const c = $('#'+containerId);
+      function render(){
+        c.innerHTML='';
+        const list = [...new Set([...preset, ...targetArr])];
+        list.forEach(v=>{
+          const b=document.createElement('button');
+          b.type='button'; b.className='chip'; b.textContent=v;
+          b.setAttribute('aria-pressed', String(targetArr.includes(v)));
+          b.onclick=()=>{ const i=targetArr.indexOf(v); if(i>=0) targetArr.splice(i,1); else targetArr.push(v); render(); live(); };
+          c.appendChild(b);
+        });
+      }
+      render();
+    }
+    function addOnEnter(inputId, targetArr, chipsId){
+      $('#'+inputId).addEventListener('keydown', e=>{
+        if(e.key==='Enter'){
+          e.preventDefault();
+          const v=e.currentTarget.value.trim().toLowerCase();
+          if(v && !targetArr.includes(v)){ targetArr.push(v); e.currentTarget.value=''; makeChips(chipsId, [], targetArr); live(); }
+        }
+      });
+    }
+    function bindTA(id, on){ const el=$('#'+id); el.addEventListener('input', ()=>on(el.value)); }
+    function bindSel(id, on){ const el=$('#'+id); el.addEventListener('change', ()=>on(el.value)); }
+    function bindNum(id, on){ const el=$('#'+id); el.addEventListener('input', ()=>on(Math.max(+(el.min||0), Math.min(+(el.max||999), +el.value||0)))); }
+    function bindRange(id, on, outId){
+      const el=$('#'+id), out=outId?$('#'+outId):null;
+      const upd=()=>{ on(+el.value); if(out) out.textContent=el.value; };
+      el.addEventListener('input', upd); upd();
+    }
+    function bindCSV(id, on, seps=[',']){
+      const el=$('#'+id);
+      const parse=(s)=> s.split(new RegExp('['+seps.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('')+']','g'))
+                         .map(v=>v.trim()).filter(Boolean);
+      const upd=()=> on(parse(el.value));
+      el.addEventListener('input', upd);
+    }
+
+    // ------- Preview + persistence -------
+    function live(){ $('#jsonOut').textContent = JSON.stringify(exportObj(), null, 2); }
+    function copyJSON(){ navigator.clipboard.writeText($('#jsonOut').textContent); }
+    function downloadJSON(){
+      const blob=new Blob([$('#jsonOut').textContent],{type:'application/json'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download='preferences.json'; a.click(); URL.revokeObjectURL(url);
+    }
+    function savePrefs(){
+      const obj = exportObj();
+      localStorage.setItem('wp_prefs', JSON.stringify(obj));
+      alert('Preferences saved ✓');
+      document.getElementById('returnBanner').hidden = false;
+    }
+    function demoSubmit(){
+      // For the UI demo, just ensure JSON is built.
+      const obj = exportObj();
+      console.log('Submit demo:', obj);
+      alert('Great! Preferences are ready (demo mode). Copy or download the JSON on the right.');
+    }
+
+    // ------- Demo loader & refill -------
+    function loadDemo(key){
+      if(!key){return;}
+      const d = DEMO[key];
+      if(!d){return;}
+
+      state = freshState();
+      state.quickNote = d.quickNote || '';
+      state.goals = (d.goals||[]).slice();
+
+      state.dietary.dietStyle = d.dietStyle || 'omnivore';
+      state.dietary.allergies = (d.allergies||[]).slice();
+      state.dietary.avoid = (d.avoid||[]).slice();
+      state.dietary.mustInclude = (d.mustInclude||[]).slice();
+
+      state.taste.cuisines = (d.cuisines||[]).slice();
+      state.taste.spiceTolerance = d.spice ?? 5;
+      state.taste.allowDesserts = (d.desserts !== 'no');
+      state.taste.proteinPrefs = (d.proteins||[]).slice();
+
+      state.mealRules.servingsPerRecipe = d.servings ?? 2;
+      state.mealRules.leftoversPolicy = d.leftovers || 'none';
+      state.mealRules.focusMeals = d.focusMeals || 'dinner';
+      state.mealRules.timePerDinnerMin = d.timePerDinner ?? 30;
+      state.mealRules.varietyLevel = d.variety ?? 7;
+
+      state.skillBudget.skillLevel = d.skill || 'beginner';
+      state.skillBudget.budgetLevel = d.budget || 'medium';
+      state.skillBudget.equipment = (d.equipment||[]).slice();
+
+      // Reveal advanced so the demo feels "rich"
+      const adv = document.getElementById('advanced');
+      adv.hidden = false;
+      document.getElementById('toggleAdvanced').textContent = 'Hide options';
+
+      refillUI(/*keepText*/false);
+      live();
+    }
+
+    function refillUI(){
+      $('#quickNote').value = state.quickNote || '';
+      // Re-render chips
+      makeChips('goalsChips', PRESETS.goals, state.goals);
+      makeChips('cuisineChips', PRESETS.cuisines, state.taste.cuisines);
+      makeChips('equipChips', PRESETS.equipment, state.skillBudget.equipment);
+      // Basic fields
+      $('#dietStyle').value = state.dietary.dietStyle;
+      $('#servings').value = state.mealRules.servingsPerRecipe;
+      $('#allergies').value = (state.dietary.allergies||[]).join('; ');
+      $('#avoid').value = (state.dietary.avoid||[]).join('; ');
+      $('#mustInclude').value = (state.dietary.mustInclude||[]).join('; ');
+      $('#leftovers').value = state.mealRules.leftoversPolicy;
+      $('#focusMeals').value = state.mealRules.focusMeals;
+      $('#timePerDinner').value = state.mealRules.timePerDinnerMin;
+      $('#variety').value = state.mealRules.varietyLevel; $('#varietyOut').textContent = state.mealRules.varietyLevel;
+      $('#skill').value = state.skillBudget.skillLevel;
+      $('#budget').value = state.skillBudget.budgetLevel;
+      $('#spice').value = state.taste.spiceTolerance; $('#spiceOut').textContent = state.taste.spiceTolerance;
+      $('#desserts').value = state.taste.allowDesserts ? 'allow' : 'no';
+      $('#proteins').value = (state.taste.proteinPrefs||[]).join('; ');
+    }
+  </script>
+</body>
+</html>
