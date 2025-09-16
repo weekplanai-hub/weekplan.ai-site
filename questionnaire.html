@@ -3,360 +3,334 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Questionnaire | Weekplan.ai</title>
+  <title>Preferences | Weekplan.ai</title>
 
-  <!-- Your site styles -->
+  <!-- Your site styles (variables, buttons, etc.) -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Scoped enhancements -->
   <style>
-    /* ============ Layout ============ */
-    .q-wrap { max-width: 980px; margin: 24px auto; }
-    .q-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .q-title { margin:0 0 6px; }
+    /* Layout */
+    .pref-wrap{max-width:1080px;margin:24px auto;padding:0 12px}
+    .pref-grid{display:grid;gap:16px}
+    @media(min-width:900px){.pref-grid{grid-template-columns:1.3fr .7fr}}
+    .card{border:1px solid var(--border,#e5e7eb);border-radius:14px;background:var(--panel,#fff);padding:16px}
+    h1{margin:0 0 6px}
+    .muted{color:var(--muted,#64748b);font-size:.92rem}
 
-    /* Progress */
-    .q-progress { height:8px; background:var(--border,#e5e7eb); border-radius:999px; overflow:hidden; }
-    .q-progress .bar { height:100%; width:0%; background:var(--accent,#1a73e8); transition:width .45s cubic-bezier(.22,1,.36,1); }
-
-    /* Stepper Pills */
-    .q-steps { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 0; }
-    .q-step { padding:6px 10px; border-radius:999px; font-weight:700; border:1px solid var(--border,#e5e7eb); background:#f8fafc; }
-    .q-step[aria-current="step"] { background:#dcfce7; border-color:#86efac; }
-
-    /* Card content */
-    .q-card { margin-top:16px; }
-    .q-fields { display:grid; gap:16px; }
-    @media (min-width:760px){ .q-two { display:grid; grid-template-columns:1fr 1fr; gap:16px; } }
-
-    /* Fieldset modern */
-    .q-fieldset { border:1px solid var(--border,#e5e7eb); border-radius:12px; padding:14px; background:var(--panel,#fff); }
-    .q-legend { font-weight:800; padding:0 4px; }
+    /* Controls */
+    .btn{cursor:pointer;border:none;border-radius:10px;padding:10px 14px;font-weight:700;background:var(--accent,#1a73e8);color:#fff}
+    .btn.alt{background:#f1f5f9;color:#0f172a;border:1px solid var(--border,#e5e7eb)}
+    .btn.row{width:100%}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
 
     /* Inputs */
-    .q-fieldset input[type="text"],
-    .q-fieldset input[type="number"],
-    .q-fieldset textarea,
-    .q-fieldset input[type="range"]{
-      width:100%; border:1px solid var(--border,#e5e7eb); border-radius:10px; padding:10px 12px; background:#fff;
-    }
-    .q-fieldset textarea{ min-height:92px; resize:vertical; }
+    textarea,input,select{width:100%;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:10px 12px;background:#fff}
+    textarea{min-height:88px;resize:vertical}
 
-    .q-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap; }
+    /* Chips */
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{border:1px solid var(--border,#e5e7eb);background:#f1f5f9;border-radius:999px;padding:8px 12px;font-weight:600;cursor:pointer}
+    .chip[aria-pressed="true"]{background:#dcfce7;border-color:#16a34a}
 
-    /* Chips with ripple */
-    .q-chips { display:flex; flex-wrap:wrap; gap:8px; }
-    .q-chip {
-      position:relative; overflow:hidden; cursor:pointer;
-      border:1px solid var(--border,#e5e7eb); background:#f1f5f9;
-      padding:8px 12px; border-radius:999px; font-weight:600;
-      transition:transform .12s ease, box-shadow .12s ease;
-    }
-    .q-chip:hover{ transform:translateY(-1px); }
-    .q-chip:active{ transform:translateY(0) scale(.98); }
-    .q-chip[aria-pressed="true"]{ background:#dcfce7; border-color:#16a34a; box-shadow:0 8px 18px rgba(0,0,0,.06); }
-    .q-chip .q-ripple{
-      position:absolute; inset:auto auto 0 0; width:6px; height:6px; background:var(--accent,#1a73e8);
-      border-radius:50%; transform:scale(0); opacity:.25; pointer-events:none;
-    }
+    /* Sections */
+    details{border:1px solid var(--border,#e5e7eb);border-radius:12px;background:var(--panel,#fff)}
+    summary{cursor:pointer;padding:12px 14px;font-weight:800}
+    .section-body{padding:0 14px 14px}
+    .row{display:grid;gap:12px}
+    @media(min-width:720px){.row.two{grid-template-columns:1fr 1fr}}
 
-    /* Output box */
-    .q-out { border:1px dashed var(--border,#e5e7eb); border-radius:12px; background:#f9fafb; padding:12px;
-             font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; }
+    /* Preview */
+    .preview{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#0b1220;color:#e8edf3;border-radius:12px;padding:12px;min-height:220px}
+    .banner{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px dashed var(--border,#e5e7eb);border-radius:12px;background:#f9fafb}
 
-    /* Slide/fade transitions */
-    .q-section { min-height:320px; }
-    .q-enter { animation:qIn .26s cubic-bezier(.22,1,.36,1); }
-    @keyframes qIn { from{opacity:.0; transform:translateX(16px);} to{opacity:1; transform:none;} }
-
-    /* Toast */
-    .q-toast {
-      position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(12px);
-      background:#0f172a; color:#fff; padding:10px 14px; border-radius:12px;
-      box-shadow:0 14px 30px rgba(0,0,0,.3); opacity:0; pointer-events:none; z-index:99;
-    }
-    .q-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); transition:opacity .25s ease, transform .25s ease; }
-
-    /* Confetti canvas */
-    canvas.q-confetti{ position:fixed; inset:0; pointer-events:none; z-index:98; }
+    /* Sticky on desktop */
+    @media(min-width:900px){.sticky{position:sticky;top:16px}}
   </style>
 </head>
 <body>
-  <main class="wrap q-wrap">
-    <div class="q-header">
-      <div>
-        <h1 class="q-title">Questionnaire</h1>
-        <div class="q-steps" aria-label="Steps">
-          <span class="q-step" id="qs1" aria-current="step">1. Context</span>
-          <span class="q-step" id="qs2">2. Goals</span>
-          <span class="q-step" id="qs3">3. Output</span>
-        </div>
-      </div>
-      <div style="min-width:180px; flex:1">
-        <div class="q-progress"><div class="bar" id="qbar"></div></div>
+  <main class="pref-wrap">
+    <header style="margin-bottom:12px">
+      <h1>Preferences</h1>
+      <p class="muted">Start simple. Add details if you want. We’ll turn this into a great dinner weekplan.</p>
+    </header>
+
+    <!-- Return user banner -->
+    <div id="returnBanner" class="banner" hidden>
+      <span>We found saved preferences.</span>
+      <div class="actions">
+        <button class="btn alt" id="useSavedBtn">Use</button>
+        <button class="btn alt" id="discardSavedBtn">Discard</button>
       </div>
     </div>
 
-    <section class="card q-card">
-      <!-- STEP 1 -->
-      <section class="q-section" data-step="1">
-        <div class="q-fields">
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">🧭 Context</legend>
-            <label for="typical">Typical week</label>
-            <textarea id="typical" placeholder="Describe your routines, time windows, constraints…"></textarea>
-          </fieldset>
+    <!-- Demo users -->
+    <div class="banner" style="margin:12px 0">
+      <div class="row two" style="align-items:center">
+        <div>
+          <label class="muted">Demo users (instant fill)</label>
+          <select id="demoSelect">
+            <option value="">— Choose a demo profile —</option>
+            <option value="timeSaver">Time-Saver Tina</option>
+            <option value="fitnessFinn">Fitness Finn</option>
+            <option value="veggieVera">Veggie Vera</option>
+          </select>
+        </div>
+        <div class="actions" style="justify-content:flex-end">
+          <button class="btn alt" id="resetBtn">Reset (clear form)</button>
+          <button class="btn alt" id="clearStorageBtn">Clear saved</button>
+        </div>
+      </div>
+    </div>
 
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">⚖️ What’s worked / not worked</legend>
-            <div class="q-two">
-              <div>
-                <label for="worked">Worked well</label>
-                <textarea id="worked" placeholder="e.g., Sunday prep, simple breakfasts…"></textarea>
+    <section class="pref-grid">
+      <!-- LEFT: Inputs -->
+      <div class="card">
+        <!-- Quick Start -->
+        <h3 style="margin-top:0">Quick Start</h3>
+        <label for="quickNote" class="muted">Optional note (anything you want us to know)</label>
+        <textarea id="quickNote" placeholder="e.g., Fast dinners under 30 min, love Mexican & Mediterranean, no mushrooms…"></textarea>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn" id="startBtn">Let the Magic Planning Begin!</button>
+          <button class="btn alt" id="toggleAdvanced">More options</button>
+        </div>
+
+        <!-- Advanced (collapsible) -->
+        <div id="advanced" hidden style="margin-top:16px;display:grid;gap:12px">
+          <details open>
+            <summary>🎯 Goals</summary>
+            <div class="section-body">
+              <div class="chips" id="goalsChips"></div>
+              <input id="goalsFree" placeholder="Add a goal (Enter)" />
+            </div>
+          </details>
+
+          <details>
+            <summary>🥗 Diet & Rules</summary>
+            <div class="section-body">
+              <div class="row two">
+                <div>
+                  <label>Diet style</label>
+                  <select id="dietStyle">
+                    <option value="omnivore">Omnivore</option>
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="pescatarian">Pescatarian</option>
+                    <option value="flexitarian">Flexitarian</option>
+                    <option value="keto">Keto</option>
+                    <option value="mediterranean">Mediterranean</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Servings per recipe</label>
+                  <input id="servings" type="number" min="1" max="8" value="2" />
+                </div>
               </div>
-              <div>
-                <label for="notWorked">Didn’t work</label>
-                <textarea id="notWorked" placeholder="e.g., long recipes, complex setup…"></textarea>
+              <div class="row two">
+                <div>
+                  <label>Allergies / intolerances</label>
+                  <input id="allergies" placeholder="e.g., peanuts; lactose" />
+                </div>
+                <div>
+                  <label>Never show (comma/semicolon-separated)</label>
+                  <input id="avoid" placeholder="e.g., mushrooms; olives" />
+                </div>
+              </div>
+              <div class="row">
+                <label>Must include (comma/semicolon-separated)</label>
+                <input id="mustInclude" placeholder="e.g., chicken; rice" />
+              </div>
+              <div class="row two">
+                <div>
+                  <label>Leftovers policy</label>
+                  <select id="leftovers">
+                    <option value="none">No leftovers</option>
+                    <option value="ok_for_lunch">OK for lunch</option>
+                    <option value="prefer_leftovers">Prefer leftovers</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Focus meals</label>
+                  <select id="focusMeals">
+                    <option value="dinner">Dinner</option>
+                    <option value="dinner_plus_lunch">Dinner + Lunch idea</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </fieldset>
+          </details>
 
-          <div class="q-actions">
-            <button class="btn" id="q-next1">Next →</button>
+          <details>
+            <summary>⏱️ Time & Skill</summary>
+            <div class="section-body">
+              <div class="row two">
+                <div>
+                  <label>Time per dinner (min)</label>
+                  <input id="timePerDinner" type="number" min="5" max="180" value="30" />
+                </div>
+                <div>
+                  <label>Variety vs repetition</label>
+                  <input id="variety" type="range" min="0" max="10" value="7" />
+                  <div class="muted"><span id="varietyOut">7</span>/10</div>
+                </div>
+              </div>
+              <div class="row two">
+                <div>
+                  <label>Cooking skill</label>
+                  <select id="skill">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Budget</label>
+                  <select id="budget">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>🍽️ Taste & Cuisines</summary>
+            <div class="section-body">
+              <div class="chips" id="cuisineChips"></div>
+              <input id="cuisineFree" placeholder="Add a cuisine (Enter)" />
+              <div class="row two" style="margin-top:10px">
+                <div>
+                  <label>Spice tolerance</label>
+                  <input id="spice" type="range" min="0" max="10" value="5" />
+                  <div class="muted"><span id="spiceOut">5</span>/10</div>
+                </div>
+                <div>
+                  <label>Desserts</label>
+                  <select id="desserts">
+                    <option value="allow">Allow sometimes</option>
+                    <option value="no">No desserts</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row" style="margin-top:8px">
+                <label>Preferred proteins (comma/semicolon-separated)</label>
+                <input id="proteins" placeholder="e.g., chicken; fish; beans" />
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>🔧 Equipment (optional)</summary>
+            <div class="section-body">
+              <div class="chips" id="equipChips"></div>
+              <input id="equipFree" placeholder="Add equipment (Enter)" />
+            </div>
+          </details>
+
+          <div class="actions" style="margin-top:8px">
+            <button class="btn" id="saveBtn">Save preferences</button>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- STEP 2 -->
-      <section class="q-section" data-step="2" hidden>
-        <div class="q-fields">
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">🎯 Top goals</legend>
-            <div class="q-chips" id="goalChips"></div>
-            <input id="goalFree" type="text" placeholder="Add your own goal (Enter)" />
-            <p class="muted" style="margin:.5rem 0 0">Pick a few. Add your own if needed.</p>
-          </fieldset>
-
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">🧱 Pain points</legend>
-            <div class="q-chips" id="painChips"></div>
-            <input id="painFree" type="text" placeholder="Add a pain point (Enter)" />
-          </fieldset>
-
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">🎛️ Trade-offs</legend>
-            <div class="q-two">
-              <div>
-                <label for="timeAvail">Time available (min/day)</label>
-                <input id="timeAvail" type="number" value="30" min="0" max="240" />
-              </div>
-              <div>
-                <label for="variety">Variety vs repetition</label>
-                <input id="variety" type="range" min="0" max="10" value="7" />
-                <div class="muted" id="varietyOut" style="margin-top:6px">7/10</div>
-              </div>
-            </div>
-          </fieldset>
-
-          <div class="q-actions">
-            <button class="btn alt" id="q-back2">← Back</button>
-            <button class="btn" id="q-next2">Next →</button>
-          </div>
+      <!-- RIGHT: Live JSON + actions -->
+      <aside class="card sticky">
+        <h3 style="margin-top:0">Preview</h3>
+        <div id="jsonOut" class="preview">{ }</div>
+        <div class="actions" style="margin-top:10px">
+          <button class="btn alt" id="copyBtn">Copy JSON</button>
+          <button class="btn alt" id="downloadBtn">Download JSON</button>
         </div>
-      </section>
-
-      <!-- STEP 3 -->
-      <section class="q-section" data-step="3" hidden>
-        <div class="q-fields">
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">🚦 Constraints</legend>
-            <div class="q-two">
-              <div>
-                <label for="hardNo">No-gos (comma separated)</label>
-                <input id="hardNo" type="text" placeholder="Allergies, strict dislikes…" />
-              </div>
-              <div>
-                <label for="mustInclude">Must include (comma separated)</label>
-                <input id="mustInclude" type="text" placeholder="Non-negotiables…" />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset class="q-fieldset">
-            <legend class="q-legend">📦 Output</legend>
-            <div class="q-out" id="jsonOut">{ }</div>
-            <div class="q-actions" style="justify-content:flex-start">
-              <button class="btn alt" id="copyBtn">Copy JSON</button>
-              <button class="btn alt" id="downloadBtn">Download JSON</button>
-            </div>
-            <p class="muted" style="margin:.4rem 0 0">Plug this into your generator when ready.</p>
-          </fieldset>
-
-          <div class="q-actions">
-            <button class="btn alt" id="q-back3">← Back</button>
-            <button class="btn" id="q-finish">Finish 🎉</button>
-          </div>
-        </div>
-      </section>
+      </aside>
     </section>
   </main>
 
-  <!-- Toast + Confetti -->
-  <div class="q-toast" id="q-toast" role="status" aria-live="polite"></div>
-  <canvas class="q-confetti" id="q-confetti"></canvas>
-
   <script>
-    /* Presets (simple, can expand) */
-    const GOALS=['save time','reduce stress','improve health','stick to budget','enjoyment','consistency'];
-    const PAINS=['no time','decision fatigue','shopping hassles','too expensive','overwhelming choices'];
-
-    /* State */
-    const state={
-      context:{typical:'',worked:'',notWorked:''},
-      goals:[], painPoints:[],
-      timeAvailMin:30, variety:7,
-      hardNo:'', mustInclude:''
+    // ------- Presets & Demo users -------
+    const PRESETS = {
+      goals: ['weight_loss','muscle_gain','enjoyment','learn_to_cook','consistency'],
+      cuisines: ['mediterranean','mexican','italian','indian','thai','japanese','nordic'],
+      equipment: ['air_fryer','slow_cooker','blender','pressure_cooker','oven','stovetop','microwave']
     };
 
-    /* Boot */
+    const DEMO = {
+      timeSaver: {
+        quickNote: 'Fast dinners under 20 min, minimal cleanup. No mushrooms.',
+        goals: ['save_time','consistency'],
+        dietStyle: 'omnivore',
+        allergies: [], avoid: ['mushrooms'], mustInclude: ['chicken','rice'],
+        cuisines: ['mexican','mediterranean'],
+        spice: 4, desserts: 'no',
+        proteins: ['chicken','beans'],
+        servings: 2, leftovers: 'ok_for_lunch', focusMeals: 'dinner',
+        timePerDinner: 20, variety: 5, skill: 'beginner', budget: 'medium',
+        equipment: ['stovetop','microwave']
+      },
+      fitnessFinn: {
+        quickNote: 'High protein, lean, 30–40 min ok, moderate spice.',
+        goals: ['muscle_gain','learn_to_cook'],
+        dietStyle: 'omnivore',
+        allergies: [], avoid: ['fried_foods'], mustInclude: ['chicken','salmon','eggs'],
+        cuisines: ['japanese','mediterranean','thai'],
+        spice: 6, desserts: 'no',
+        proteins: ['chicken','salmon','eggs','tofu'],
+        servings: 2, leftovers: 'prefer_leftovers', focusMeals: 'dinner',
+        timePerDinner: 35, variety: 8, skill: 'intermediate', budget: 'high',
+        equipment: ['air_fryer','oven','stovetop','blender']
+      },
+      veggieVera: {
+        quickNote: 'Vegetarian. Budget-friendly. Loves Indian & Italian.',
+        goals: ['enjoyment','weight_loss'],
+        dietStyle: 'vegetarian',
+        allergies: ['lactose'], avoid: [], mustInclude: ['lentils','beans'],
+        cuisines: ['indian','italian'],
+        spice: 7, desserts: 'allow',
+        proteins: ['lentils','beans','tofu'],
+        servings: 2, leftovers: 'ok_for_lunch', focusMeals: 'dinner',
+        timePerDinner: 30, variety: 7, skill: 'beginner', budget: 'low',
+        equipment: ['stovetop','pressure_cooker','oven']
+      }
+    };
+
+    // ------- State -------
+    let state = {
+      profileVersion: 1,
+      quickNote: '',
+      goals: [],
+      dietary: { dietStyle:'omnivore', allergies:[], intolerances:[], avoid:[], mustInclude:[] },
+      taste: { cuisines:[], spiceTolerance:5, allowDesserts:true, proteinPrefs:[] },
+      mealRules: { focusMeals:'dinner', servingsPerRecipe:2, leftoversPolicy:'none', timePerDinnerMin:30, varietyLevel:7 },
+      skillBudget: { skillLevel:'beginner', budgetLevel:'medium', equipment:[] },
+      meta: { device:'web', savedAt:null }
+    };
+
+    // ------- Boot -------
     init();
     function init(){
-      // Chips
-      chips('goalChips', GOALS, state.goals);
-      chips('painChips', PAINS, state.painPoints);
+      // Return user banner if we have saved prefs
+      const saved = localStorage.getItem('wp_prefs');
+      if(saved){ document.getElementById('returnBanner').hidden = false; }
 
-      // Bind inputs
-      bindText('typical','context.typical');
-      bindText('worked','context.worked');
-      bindText('notWorked','context.notWorked');
-      bindNumber('timeAvail','timeAvailMin');
-      bindRange('variety','variety','varietyOut');
-      bindText('hardNo','hardNo');
-      bindText('mustInclude','mustInclude');
-
-      // Add custom via Enter
-      onEnterAdd('goalFree', state.goals, 'goalChips');
-      onEnterAdd('painFree', state.painPoints, 'painChips');
-
-      // Nav
-      $('#q-next1').onclick = ()=> go(2);
-      $('#q-back2').onclick = ()=> go(1);
-      $('#q-next2').onclick = ()=> { buildOut(); go(3); };
-      $('#q-back3').onclick = ()=> go(2);
-      $('#q-finish').onclick = ()=> { buildOut(); toast('Saved ✔️'); confetti(); };
-
-      // Copy/Download
-      $('#copyBtn').onclick = copyJSON;
-      $('#downloadBtn').onclick = downloadJSON;
-
-      // Initial
-      buildOut(); progress(1);
-    }
-
-    /* Helpers */
-    function $(s){ return document.querySelector(s); }
-    function all(s){ return Array.from(document.querySelectorAll(s)); }
-    function byId(id){ return document.getElementById(id); }
-
-    function setPath(path,val){
-      const parts=path.split('.'); let ref=state;
-      for(let i=0;i<parts.length-1;i++){ const k=parts[i]; if(!(k in ref)) ref[k]={}; ref=ref[k]; }
-      ref[parts.at(-1)]=val;
-    }
-    function getPath(path){ return path.split('.').reduce((o,k)=>o?o[k]:undefined,state); }
-
-    function bindText(id,path){
-      const el=byId(id); el.value=getPath(path)||'';
-      el.addEventListener('input', ()=>{ setPath(path,el.value); liveOut(); });
-    }
-    function bindNumber(id,path){
-      const el=byId(id); el.value=getPath(path)||0;
-      el.addEventListener('input', ()=>{ setPath(path,+el.value||0); liveOut(); });
-    }
-    function bindRange(id,path,outId){
-      const el=byId(id), out=outId?byId(outId):null;
-      el.value=getPath(path)||0; if(out) out.textContent=`${el.value}/10`;
-      el.addEventListener('input', ()=>{ setPath(path,+el.value); if(out) out.textContent=`${el.value}/10`; liveOut(); });
-    }
-
-    /* Chips with ripple */
-    function chips(containerId, preset, arr){
-      const c=byId(containerId); c.innerHTML='';
-      const items=[...preset, ...arr.filter(v=>!preset.includes(v))];
-      items.forEach(v=>{
-        const b=document.createElement('button');
-        b.type='button'; b.className='q-chip'; b.textContent=v;
-        b.setAttribute('aria-pressed', String(arr.includes(v)));
-        b.appendChild(rippleEl());
-        b.addEventListener('click', (e)=>{ ripple(e); toggle(arr,v); b.setAttribute('aria-pressed', String(arr.includes(v))); liveOut(); });
-        b.addEventListener('keydown',(e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); b.click(); }});
-        c.appendChild(b);
-      });
-    }
-    function rippleEl(){ const s=document.createElement('span'); s.className='q-ripple'; return s; }
-    function ripple(e){
-      const t=e.currentTarget, r=t.querySelector('.q-ripple'); if(!r) return;
-      const rect=t.getBoundingClientRect(); const size=Math.max(rect.width,rect.height)*1.8;
-      r.style.left=(e.clientX-rect.left-size/2)+'px'; r.style.top=(e.clientY-rect.top-size/2)+'px';
-      r.style.width=size+'px'; r.style.height=size+'px'; r.style.opacity=.25; r.style.transform='scale(0)';
-      r.animate([{transform:'scale(0)',opacity:.25},{transform:'scale(1)',opacity:0}],{duration:420,easing:'ease-out'});
-    }
-    function toggle(a,v){ const i=a.indexOf(v); if(i>=0) a.splice(i,1); else a.push(v); }
-    function onEnterAdd(id, arr, containerId){
-      const el=byId(id);
-      el.addEventListener('keydown',(e)=>{
-        if(e.key==='Enter'){ e.preventDefault(); const v=el.value.trim(); if(v&&!arr.includes(v)){ arr.push(v); chips(containerId,[],arr); el.value=''; liveOut(); } }
-      });
-    }
-
-    /* Steps */
-    const total=3;
-    function go(step){
-      const cur=document.querySelector('.q-section:not([hidden])');
-      const next=document.querySelector(`.q-section[data-step="${step}"]`);
-      if(!next||cur===next) return;
-      cur.hidden=true; next.hidden=false; next.classList.remove('q-enter'); void next.offsetWidth; next.classList.add('q-enter');
-      for(let i=1;i<=total;i++) byId('qs'+i).removeAttribute('aria-current');
-      byId('qs'+step).setAttribute('aria-current','step');
-      progress(step);
-    }
-    function progress(step){ byId('qbar').style.width = Math.max(0, Math.min(100, ((step-1)/(total-1))*100)) + '%'; }
-
-    /* Output */
-    function exportObj(){
-      return {
-        context:{...state.context},
-        goals:[...state.goals],
-        painPoints:[...state.painPoints],
-        timeAvailMin: state.timeAvailMin,
-        variety: state.variety,
-        hardNo: state.hardNo,
-        mustInclude: state.mustInclude
+      // Toggle advanced
+      document.getElementById('toggleAdvanced').onclick = () => {
+        const adv = document.getElementById('advanced');
+        adv.hidden = !adv.hidden;
+        document.getElementById('toggleAdvanced').textContent = adv.hidden ? 'More options' : 'Hide options';
       };
-    }
-    function buildOut(){ byId('jsonOut').textContent = JSON.stringify(exportObj(), null, 2); }
-    function liveOut(){ const s=byId('jsonOut').closest('.q-section'); if(s && !s.hidden) buildOut(); }
-    function copyJSON(){ navigator.clipboard.writeText(byId('jsonOut').textContent).then(()=>toast('Copied 📋')); }
-    function downloadJSON(){
-      const blob=new Blob([byId('jsonOut').textContent],{type:'application/json'});
-      const url=URL.createObjectURL(blob); const a=document.createElement('a');
-      a.href=url; a.download='questionnaire.json'; a.click(); URL.revokeObjectURL(url);
-      toast('Downloading…');
-    }
 
-    /* Toast + confetti */
-    function toast(msg){ const t=byId('q-toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
-    function confetti(){
-      const c=byId('q-confetti'); const ctx=c.getContext('2d'); resize();
-      const pieces=Array.from({length:26},()=>({x:Math.random()*c.width,y:-10,vy:2+Math.random()*3,vx:(Math.random()-.5)*1.2,s:2+Math.random()*3,a:1,h:Math.floor(Math.random()*360)}));
-      let t=0; (function step(){
-        ctx.clearRect(0,0,c.width,c.height);
-        pieces.forEach(p=>{ p.vy+=.02; p.x+=p.vx; p.y+=p.vy; p.a-=.01; ctx.fillStyle=`hsla(${p.h},90%,60%,${Math.max(0,p.a)})`; ctx.fillRect(p.x,p.y,p.s,p.s*1.6); });
-        if(++t<140) requestAnimationFrame(step); else ctx.clearRect(0,0,c.width,c.height);
-      })();
-      window.addEventListener('resize', resize, {once:true});
-      function resize(){ c.width=window.innerWidth; c.height=window.innerHeight; }
-    }
-  </script>
-</body>
-</html>
+      // Chips
+      makeChips('goalsChips', PRESETS.goals, state.goals);
+      makeChips('cuisineChips', PRESETS.cuisines, state.taste.cuisines);
+      makeChips('equipChips', PRESETS.equipment, state.skillBudget.equipment);
+
+      // Free add inputs
+      addOnEnter('goalsFree', state.goals, 'goalsChips');
+      addOnEnter('cuisineFree', state.taste.cuisines, 'cuisineChips');
+      addOnEnter('equipFree', state.skillBudget.equipment, 'equipChips');
+
+      // Bind simple + advanced fields
+      bindTA('quickNote', v => { state.quickNote = v; live(); });
+
+      bindSel('dietStyle', v => { state.dietary.dietStyle = v; live(); });
+      bindNum('servings', v => { sta
