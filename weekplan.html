@@ -177,10 +177,16 @@
             <h3 class="day-title">${day.name}</h3>
             ${isMonday ? `
               <div style="display:flex;gap:8px">
-                <button class="btn btn-primary" data-action="gen-monday">Generer mandag</button>
-                <button class="btn btn-alt" data-action="reset-monday">Nullstill dag</button>
+                <button
+                  class="btn btn-primary"
+                  data-action="gen-monday"
+                  aria-label="Generer mandag"
+                  title="Generer mandag"
+                  style="padding:8px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;"
+                >▶</button>
               </div>
             ` : ``}
+
           </div>
           <div class="day-content">
             <div class="day-empty">

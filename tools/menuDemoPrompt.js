@@ -41,7 +41,8 @@ Here we will add the menus generated, andthis will be used as an input later to 
 
 Actual preferences:
 1000
-B, D
+B, L, D, S
+Do not use output example data, but a meny suitable for this day of the year. 
 8000 “No milk”
 
 Output – example:
