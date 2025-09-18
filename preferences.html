@@ -53,15 +53,6 @@
   .meal-btn{padding:10px 18px;border-radius:12px;border:2px solid #2563eb;background:#eff6ff;font-weight:700;cursor:pointer;transition:all .2s ease}
   .meal-btn.active{background:#2563eb;color:#fff;box-shadow:0 0 10px rgba(37,99,235,.6)}
 
-  details.suggestions{margin-top:14px}
-  details.suggestions summary{cursor:pointer;font-weight:700;color:#1e3a8a}
-  .checks{display:grid;gap:8px;margin-top:10px;grid-template-columns:1fr 1fr}
-  .check{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-size:.95rem}
-  .check input{width:16px;height:16px}
-
-  details.peek{margin-top:10px}
-  .peek .box{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#0b1220;color:#e8edf3;border-radius:12px;padding:12px;max-height:200px;overflow:auto}
-
   /* --- Dev panel (out of product UI) --- */
   .dev-wrap{max-width:980px;margin:22px auto 40px;padding:0 16px}
   .dev{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -116,28 +107,10 @@
             <label class="muted">Custom instructions (optional)</label>
             <textarea class="note" id="quickNote" rows="5" placeholder="Tell the planner anything: goals, ingredients to avoid/include, cuisines, time limits…"></textarea>
           </div>
-          <details class="suggestions">
-            <summary>Quick suggestions (optional)</summary>
-            <div class="checks">
-              <label class="check"><input type="checkbox" value="save_time"> Save time</label>
-              <label class="check"><input type="checkbox" value="weight_loss"> Weight loss</label>
-              <label class="check"><input type="checkbox" value="muscle_gain"> Muscle gain</label>
-              <label class="check"><input type="checkbox" value="vegetarian"> Vegetarian focus</label>
-              <label class="check"><input type="checkbox" value="budget_friendly"> Budget friendly</label>
-            </div>
-          </details>
           <div class="actions" style="margin-top:14px">
-            <button class="btn alt" id="openHub">Help me find my perfect food plan</button>
-            <button class="btn alt" id="inFridge">In the fridge</button>
             <button class="btn" id="doQuick">Create Plan</button>
-          </div>
-          <div class="actions" style="justify-content:flex-end; margin-top:10px">
             <button class="btn slim ghost" id="qBack">Back</button>
           </div>
-          <details class="peek">
-            <summary class="muted">JSON preview</summary>
-            <div class="box" id="quickJSON">{ }</div>
-          </details>
           <div class="dots"><span class="dot"></span><span class="dot active"></span></div>
         </section>
       </div>
@@ -145,26 +118,30 @@
   </dialog>
 </div>
 
-<!-- Developer-only utilities (not part of UX) -->
+<!-- Developer-only utilities -->
 <section class="dev-wrap" aria-label="Developer utilities">
   <div class="dev">
     <div class="card">
-      <h3>Save to database <small>(mocked with localStorage)</small></h3>
+      <h3>Save to database</h3>
       <div class="row">
         <button class="btn" id="devSave">Save current prefs</button>
         <small class="muted">Saves: number of people + selected meals.</small>
       </div>
     </div>
     <div class="card">
-      <h3>Import from database <small>(mocked)</small></h3>
+      <h3>Import from database</h3>
       <div class="row">
         <button class="btn alt" id="devLoad">Import & preview</button>
         <input id="devPeople" readonly placeholder="people" />
-        <input id="devMeals" readonly placeholder="meals (comma‑separated)" />
+        <input id="devMeals" readonly placeholder="meals (comma-separated)" />
       </div>
     </div>
   </div>
 </section>
+
+<!-- Supabase client + init -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/supabase.js"></script>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -177,11 +154,9 @@ $('#plusBtn').onclick = ()=>{ let c = +$('#peopleCount').textContent; $('#people
 document.querySelectorAll('.meal-btn').forEach(btn=>{ btn.onclick = ()=> btn.classList.toggle('active'); });
 $('#doQuick').onclick = ()=> alert('Plan created (demo)');
 $('#doQuickFromFirst').onclick = ()=> alert('Week Plan created (demo)');
-$('#openHub').onclick = ()=> alert('Open Hub (demo)');
-$('#inFridge').onclick = ()=> alert('In the fridge (demo)');
 document.querySelectorAll('[data-close]').forEach(b=> b.onclick = e => e.target.closest('dialog').close());
 
-// --- Dev helpers ---
+// --- Helpers
 function getCurrentPrefs(){
   const people = +$('#peopleCount').textContent;
   const meals = Array.from(document.querySelectorAll('.meal-btn'))
@@ -198,24 +173,41 @@ function applyPrefs(pref){
     });
   }
 }
-$('#devSave').onclick = ()=>{
-  const data = getCurrentPrefs();
-  try{
-    localStorage.setItem('weekplan_dev_prefs', JSON.stringify(data));
-    alert('Saved to localStorage as weekplan_dev_prefs');
-  }catch(err){ alert('Save failed: '+err.message); }
+
+// --- Save to Supabase ---
+$('#devSave').onclick = async () => {
+  const { people, meals } = getCurrentPrefs();
+  try {
+    const { error } = await sb.from('prefs').insert([{ people, meals }]);
+    if (error) throw error;
+    alert('Saved to Supabase ✅');
+  } catch (err) {
+    console.error(err);
+    alert('Save failed ❌: ' + err.message);
+  }
 };
-$('#devLoad').onclick = ()=>{
-  try{
-    const raw = localStorage.getItem('weekplan_dev_prefs');
-    if(!raw){ alert('Nothing saved yet.'); return; }
-    const data = JSON.parse(raw);
-    // preview in fields
-    $('#devPeople').value = data.people ?? '';
-    $('#devMeals').value = Array.isArray(data.meals)? data.meals.join(', ') : '';
-    // also apply to UI so you can confirm visually
-    applyPrefs(data);
-  }catch(err){ alert('Load failed: '+err.message); }
+
+// --- Load from Supabase ---
+$('#devLoad').onclick = async () => {
+  try {
+    const { data, error } = await sb
+      .from('prefs')
+      .select('*')
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    if (!data || !data.length) { alert('No rows in prefs yet.'); return; }
+
+    const pref = data[0];
+    $('#devPeople').value = pref.people ?? '';
+    $('#devMeals').value  = Array.isArray(pref.meals) ? pref.meals.join(', ') : '';
+    applyPrefs(pref);
+    alert('Imported last row from Supabase ✅');
+  } catch (err) {
+    console.error(err);
+    alert('Load failed ❌: ' + err.message);
+  }
 };
 </script>
 </body>
