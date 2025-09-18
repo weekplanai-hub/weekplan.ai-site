@@ -1,11 +1,31 @@
 // menuDemoPrompt.js
-// Full original demo prompt for the API Manager
-export const DEMO_PROMPT = `You are an expert in cooking and nutrition, with strong skills in creating well-tailored menus with accompanying recipes and shopping lists.
+
+// ---- Konfigurerbare standardverdier ----
+const DEFAULT_DAY_CODE = 1000;                   // 1000–1006
+const DEFAULT_ROWS = "B, L, D, S";               // rekkefølge på måltider
+const DEFAULT_NOTES = `Do not use output example data, but a menu suitable for this day of the year.
+8000 "No milk"`;
+
+// ---- Bygg "Actual preferences" dynamisk ----
+export function buildActualPreferences(dayCode = DEFAULT_DAY_CODE, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
+  return `
+Actual preferences:
+${dayCode}
+${rows}
+${extraNotes}
+`.trim();
+}
+
+// ---- Bygg hele DEMO_PROMPT gitt en preferences-blokk ----
+export function buildDemoPrompt(preferencesBlock) {
+  return `You are an expert in cooking and nutrition, with strong skills in creating well-tailored menus with accompanying recipes and shopping lists.
 See the section “Actual preferences” and create a menu for the current day that follows the instructions below. You must provide only one answer in the same form as the Output – example below.
 
 We use numbering in the output so that an HTML code can later split the content and display it in the correct place.
 
 Output language: English.
+
+${preferencesBlock}
 
 Instructions (strict):
 - Always follow the output format; do nothing else.
@@ -37,13 +57,7 @@ Note: 8000 User preferences
 [User given text input]. Apply this knowledge to the menu.
 
 System: 9000
-Here we will add the menus generated, andthis will be used as an input later to avoid duplication. Show lines with Menu headlines from the xxx1 series, and (day, letter) after the title. Se example. Do not skip this one.
-
-Actual preferences:
-1000
-B, L, D, S
-Do not use output example data, but a meny suitable for this day of the year. 
-8000 “No milk”
+Here we will add the menus generated, and this will be used as an input later to avoid duplication. Show lines with Menu headlines from the xxx1 series, and (day, letter) after the title. Se example. Do not skip this one.
 
 Output – example:
 1000 Monday
@@ -108,3 +122,29 @@ Optional
 9000 System
 - Eggs and ham (1000, B)
 - Quick Salmon & Potatoes (1000, D)`;
+}
+
+// ---- Backwards compatibility: behold et statisk DEMO_PROMPT (bruker 1000 som default) ----
+export const ACTUAL_PREFERENCES = buildActualPreferences(DEFAULT_DAY_CODE, DEFAULT_ROWS, DEFAULT_NOTES);
+export const DEMO_PROMPT = buildDemoPrompt(ACTUAL_PREFERENCES);
+
+// ---- Hjelpefunksjoner for daglig generering ----
+
+// Bygg prompt for én spesifikk dag
+export function buildDemoPromptForDay(dayCode, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
+  const prefs = buildActualPreferences(dayCode, rows, extraNotes);
+  return buildDemoPrompt(prefs);
+}
+
+// Eksempel: loop gjennom 1000–1006 og kall API
+// callApi(prompt) er en plassholder for din faktiske API-kall-funksjon.
+export async function generateWeek(callApi, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
+  const results = [];
+  for (let day = 1000; day <= 1006; day++) {
+    const prompt = buildDemoPromptForDay(day, rows, extraNotes);
+    // eslint-disable-next-line no-await-in-loop
+    const res = await callApi(prompt);
+    results.push({ dayCode: day, response: res });
+  }
+  return results;
+}
