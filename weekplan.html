@@ -421,11 +421,12 @@
 
     // --- (9) API-bridge for demo-prompt ---
     async function runDemoViaApiManager(){
-      // A) Hvis API-playgrounden har eksponert en global (anbefalt):
-      if (window.APIManager?.runDemoPrompt){
-        const out = await window.APIManager.runDemoPrompt(); // forventer ren tekst i outputformatet
-        return out;
-      }
+    // A) Bruk weekplan-bridge (unngår navnekonflikt med API Manager-UI)
+    if (window.WeekplanBridge?.runDemoPrompt){
+      const out = await window.WeekplanBridge.runDemoPrompt(); // forventer ren tekst
+      return out;
+    }
+
 
       // B) Prøv backend-proxy med importert DEMO_PROMPT:
       if (DEMO_PROMPT){
@@ -487,5 +488,7 @@
     // --- (11) Init ---
     document.addEventListener('DOMContentLoaded', initializeWeek);
   </script>
+
+  <script type="module" src="/tools/weekplan-bridge.js"></script>
 </body>
 </html>
