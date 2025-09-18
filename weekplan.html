@@ -129,14 +129,29 @@
   </div>
 
   <script type="module">
-    // --- (1) Forsøk å importere DEMO_PROMPT hvis du har denne filen i prosjeketet ---
-    let DEMO_PROMPT = undefined;
-    try {
-      const mod = await import('/tools/menuDemoPrompt.js');
-      DEMO_PROMPT = mod?.DEMO_PROMPT;
-    } catch (_) {
-      // Stilletiende – vi håndterer fallback senere.
-    }
+// --- (1) Forsøk å importere byggere fra menuDemoPrompt.js ---
+let DEMO_PROMPT, buildDemoPromptForDay;
+
+async function importMenuBuilder() {
+  // 1) absolutt
+  try {
+    const mod = await import('/tools/menuDemoPrompt.js');
+    DEMO_PROMPT = mod?.DEMO_PROMPT;
+    buildDemoPromptForDay = mod?.buildDemoPromptForDay;
+    return;
+  } catch {}
+
+  // 2) relativ (hvis HTML-en ligger i samme mappe som /tools)
+  try {
+    const mod = await import('./tools/menuDemoPrompt.js');
+    DEMO_PROMPT = mod?.DEMO_PROMPT;
+    buildDemoPromptForDay = mod?.buildDemoPromptForDay;
+  } catch {
+    // stille fallback – vi har mock i runPromptViaApiManager
+  }
+}
+await importMenuBuilder();
+
 
     // --- (2) Dag- og måltids-mapping ---
     const dayMapping = {
@@ -204,12 +219,13 @@
         container.appendChild(card);
 
         // Koble knapper (kun Mandag) etter at elementene finnes
-        if (isMonday) {
-          const genBtn = card.querySelector('[data-action="gen-monday"]');
-          const resetBtn = card.querySelector('[data-action="reset-monday"]');
-          if (genBtn) genBtn.addEventListener('click', (e) => generateMonday(e.currentTarget));
-          if (resetBtn) resetBtn.addEventListener('click', () => refreshDay('1000'));
-        }
+      if (isMonday) {
+        const genBtn = card.querySelector('[data-action="gen-monday"]');
+        const resetBtn = card.querySelector('[data-action="reset-monday"]');
+        if (genBtn) genBtn.addEventListener('click', (e) => generateWeekFromMonday(e.currentTarget));
+        if (resetBtn) resetBtn.addEventListener('click', () => refreshDay('1000'));
+      }
+
       });
 
       showStatus('Uke er klar. Trykk «Generer mandag».', 'success');
@@ -286,77 +302,76 @@
       return result;
     }
 
-    // --- (6) Render kun én dag (mandag) ---
-    function renderMonday(data){
-      const monday = data['1000'];
-      const card = document.querySelector('[data-day-code="1000"]');
-      if (!card) return;
-      const dayContent = card.querySelector('.day-content');
-      if (!monday || !monday.meals || Object.keys(monday.meals).length === 0){
-        // behold tom state
-        return;
-      }
-      dayContent.innerHTML = '';
+// --- (6) Render én vilkårlig dag (1000–1006) ---
+function renderDay(parsedData, dayCode){
+  const dayObj = parsedData[String(dayCode)];
+  const card = document.querySelector(`[data-day-code="${dayCode}"]`);
+  if (!card) return;
+  const dayContent = card.querySelector('.day-content');
 
-      const mealsHtml = Object.entries(monday.meals).map(([mealCode, mealData]) => {
-        const mealType = getMealTypeClass(mealCode);
-        const mealIcon = getMealIcon(mealCode);
-        const recipeData = JSON.stringify(mealData.recipe || []);
-        const shoppingData = JSON.stringify(mealData.shopping || []);
-        const titleData = mealData.title || 'Ukjent måltid';
-        return `
-          <div class="meal-tile" data-meal="${mealCode}"
-               data-recipe='${recipeData}'
-               data-shopping='${shoppingData}'
-               data-title='${titleData}'>
-            <div class="meal-header ${mealType}">
-              <div class="meal-type-label">
-                ${mealMapping[mealCode] || 'Måltid'}
-                <svg class="meal-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="m9 18 6-6-6-6"/>
-                </svg>
-              </div>
-              <svg class="meal-heart" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
+  if (!dayObj || !dayObj.meals || Object.keys(dayObj.meals).length === 0){
+    return; // behold tom state
+  }
+
+  const mealsHtml = Object.entries(dayObj.meals).map(([mealCode, mealData]) => {
+    const mealType = getMealTypeClass(mealCode);
+    const mealIcon = getMealIcon(mealCode);
+    const recipeData = JSON.stringify(mealData.recipe || []);
+    const shoppingData = JSON.stringify(mealData.shopping || []);
+    const titleData = mealData.title || 'Ukjent måltid';
+    return `
+      <div class="meal-tile" data-meal="${mealCode}"
+           data-recipe='${recipeData}'
+           data-shopping='${shoppingData}'
+           data-title='${titleData}'>
+        <div class="meal-header ${mealType}">
+          <div class="meal-type-label">
+            ${mealMapping[mealCode] || 'Måltid'}
+            <svg class="meal-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          </div>
+          <svg class="meal-heart" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <div class="meal-icon">${mealIcon}</div>
+        <div class="meal-content">
+          <h3 class="meal-title">${titleData}</h3>
+          <p class="meal-description">Frisk, lett og proteinrik</p>
+          <div class="meal-stats">
+            <div class="stat">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg> 25 min
             </div>
-            <div class="meal-icon">${mealIcon}</div>
-            <div class="meal-content">
-              <h3 class="meal-title">${titleData}</h3>
-              <p class="meal-description">Frisk, lett og proteinrik</p>
-              <div class="meal-stats">
-                <div class="stat">
-                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                  </svg> 25 min
-                </div>
-                <div class="stat">
-                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                  </svg> 2 pers
-                </div>
-                <div class="stat">
-                  <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg> Lett
-                </div>
-              </div>
-              <div class="meal-actions">
-                <button class="action-btn secondary" onclick="showShoppingFromElement(this)">Handleliste</button>
-                <button class="action-btn primary" onclick="showRecipeFromElement(this)">Oppskrift</button>
-              </div>
+            <div class="stat">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              </svg> 2 pers
+            </div>
+            <div class="stat">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg> Lett
             </div>
           </div>
-        `;
-      }).join('');
+          <div class="meal-actions">
+            <button class="action-btn secondary" onclick="showShoppingFromElement(this)">Handleliste</button>
+            <button class="action-btn primary" onclick="showRecipeFromElement(this)">Oppskrift</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 
-      dayContent.innerHTML = mealsHtml;
+  dayContent.innerHTML = mealsHtml;
 
-      // Systemtekst hvis finnes
-      if (data.system){
-        document.getElementById('systemInfo').textContent = data.system;
-      }
-    }
+  if (parsedData.system){
+    document.getElementById('systemInfo').textContent = parsedData.system;
+  }
+}
+
 
     function getMealTypeClass(mealCode){
       return ({B:'breakfast',L:'lunch',D:'dinner',S:'supper'})[mealCode] || 'breakfast';
@@ -438,78 +453,159 @@
     }
     window.refreshDay = refreshDay;
 
-    // --- (9) API-bridge for demo-prompt ---
-    async function runDemoViaApiManager(){
-    // A) Bruk weekplan-bridge (unngår navnekonflikt med API Manager-UI)
-    if (window.WeekplanBridge?.runDemoPrompt){
-      const out = await window.WeekplanBridge.runDemoPrompt(); // forventer ren tekst
-      return out;
+// --- (9) API-bridge som kan kjøre vilkårlig prompt (per dag) ---
+async function runPromptViaApiManager(promptText, dayCodeForFallback = 1000){
+  // A) WeekplanBridge med fri prompt
+  if (window.WeekplanBridge?.runPrompt){
+    try {
+      return await window.WeekplanBridge.runPrompt(promptText);
+    } catch (e) {
+      console.warn('WeekplanBridge.runPrompt feilet:', e);
     }
+  }
 
+  // B) Backend-proxy som aksepterer tekstprompt
+  if (promptText){
+    try {
+      const res = await fetch('/api/run-demo', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ prompt: promptText })
+      });
+      if (!res.ok) throw new Error(`API svarte ${res.status}`);
+      return await res.text();
+    } catch (e) {
+      console.warn('POST /api/run-demo feilet:', e);
+      // vi faller ned til C)
+    }
+  }
 
-      // B) Prøv backend-proxy med importert DEMO_PROMPT:
-      if (DEMO_PROMPT){
-        const res = await fetch('/api/run-demo', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ prompt: DEMO_PROMPT })
-        });
-        if (!res.ok) throw new Error('API svarte ikke OK');
-        const data = await res.text(); // anta ren tekst
-        return data;
+  // C) Fallback: generer en minimal respons for gitt dayCode (lokal mock)
+  const dayNameMap = {
+    1000:'Monday',1001:'Tuesday',1002:'Wednesday',1003:'Thursday',
+    1004:'Friday',1005:'Saturday',1006:'Sunday'
+  };
+  const dn = dayNameMap[dayCodeForFallback] || 'Monday';
+
+  return [
+    `${dayCodeForFallback} ${dn}`,
+    '2000 D',
+    '2001 Salmon with Roasted Potatoes',
+    '2002 Recipe',
+    'Preheat oven to 200°C.',
+    'Toss potato wedges with olive oil, salt, pepper; roast 25 min.',
+    'Season salmon; bake last 12–15 min.',
+    'Serve with lemon and a green salad.',
+    '2003 Shopping list',
+    'Salmon fillets (2)',
+    'Potatoes (600 g)',
+    'Olive oil, salt, pepper, lemon',
+    'Mixed greens',
+    '9000 System',
+    `- Salmon with Roasted Potatoes (${dayCodeForFallback}, D)`
+  ].join('\n');
+}
+
+// --- (10) Generer HELE UKEN (1000–1006) når vi trykker på mandagsknappen ---
+async function generateWeekFromMonday(button){
+  const originalLabel = button.textContent;
+  const errors = [];
+  let lastSystem = '';
+
+  try{
+    button.disabled = true;
+    button.textContent = 'Genererer uke…';
+    showStatus('Jobber med å hente menyer for hele uken …');
+
+    // Vis "laster" i alle dagkort først
+    for (let day = 1000; day <= 1006; day++){
+      const card = document.querySelector(`[data-day-code="${day}"] .day-content`);
+      if (card){
+        card.innerHTML = `<div class="day-empty" style="height:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+          </svg> Henter meny …</div>`;
       }
-
-      // C) Fallback: liten hardkodet demo kun for mandag (1000 + middag D)
-      return [
-        '1000 Monday',
-        '2000 D',
-        '2001 Salmon with Roasted Potatoes',
-        '2002 Recipe',
-        'Preheat oven to 200°C.',
-        'Toss potato wedges with olive oil, salt, pepper; roast 25 min.',
-        'Season salmon; bake last 12–15 min.',
-        'Serve with lemon and a green salad.',
-        '2003 Shopping list',
-        'Salmon fillets (2)',
-        'Potatoes (600 g)',
-        'Olive oil, salt, pepper, lemon',
-        'Mixed greens'
-      ].join('\n');
     }
 
-    // --- (10) Generer MANDAG ---
-    async function generateMonday(button){
-      const originalLabel = button.textContent;
-      try{
-        button.disabled = true;
-        button.textContent = 'Genererer…';
-        showStatus('Jobber med å hente meny for mandag …');
+    // 7 API-kall sekvensielt, men ikke stopp ved feil
+    for (let day = 1000; day <= 1006; day++){
+      try {
+        const prompt = buildDemoPromptForDay ? buildDemoPromptForDay(day) : DEMO_PROMPT;
+        const raw = await runPromptViaApiManager(prompt, day);
 
-        const raw = await runDemoViaApiManager();
+        if (typeof raw !== 'string' || !raw.trim()) {
+          throw new Error('Tomt svar fra API');
+        }
+
         const parsed = parseAIOutput(raw);
 
-        // Sikkerhet: behold kun 1000 (mandag)
-        const onlyMonday = {};
-        if (parsed['1000']) onlyMonday['1000'] = parsed['1000'];
-        if (parsed.system) onlyMonday.system = parsed.system;
+        const oneDay = {};
+        if (parsed[String(day)]) oneDay[String(day)] = parsed[String(day)];
+        if (parsed.system) { oneDay.system = parsed.system; lastSystem = parsed.system; }
 
-        renderMonday(onlyMonday);
-        showStatus('✅ Mandag generert fra API', 'success');
-      } catch (err){
-        console.error(err);
-        showStatus('❌ Klarte ikke å generere mandag. Sjekk API-koblingen.', 'error');
-      } finally{
-        button.disabled = false;
-        button.textContent = originalLabel;
+        // Hvis parser ikke ga noe for dagen, kast
+        if (!oneDay[String(day)]) throw new Error('Ugyldig format for dag ' + day);
+
+        renderDay(oneDay, day);
+        showStatus(`✅ Generert: ${dayMapping[day]?.name || day}`, 'success');
+      } catch (e){
+        console.error(`Dag ${day} feilet:`, e);
+        errors.push({ day, err: e });
+
+        // Marker kortet med feil men la resten fortsette
+        const card = document.querySelector(`[data-day-code="${day}"] .day-content`);
+        if (card){
+          card.innerHTML = `<div class="day-empty" style="height:auto;color:#e53e3e">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/>
+            </svg> Kunne ikke hente meny</div>`;
+        }
       }
     }
+
+    if (lastSystem) {
+      document.getElementById('systemInfo').textContent = lastSystem;
+    }
+
+    if (errors.length){
+      const list = errors.map(e => `• ${dayMapping[e.day]?.name || e.day}: ${e.err?.message || 'ukjent feil'}`).join('\n');
+      showStatus('⚠️ Noen dager feilet. Se System Info / konsoll.', 'error');
+      // legg en kort logg i systeminfo (bevarer eksisterende)
+      const sys = document.getElementById('systemInfo');
+      if (sys){
+        sys.textContent = (sys.textContent ? sys.textContent + '\n\n' : '') +
+          'Errors:\n' + list;
+      }
+    } else {
+      showStatus('🎉 Hele uken er generert!', 'success');
+    }
+
+  } finally{
+    button.disabled = false;
+    button.textContent = originalLabel;
+  }
+}
+
+  
   </script>
 
   <!-- last scripts -->
   <script type="module" src="/tools/weekplan-bridge.js"></script>
-  <script type="module">
-    // --- (11) Init ---
-    document.addEventListener('DOMContentLoaded', initializeWeek);
-  </script>
+<script type="module">
+  // --- (11) Init (robust) ---
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.initializeWeek === 'function') {
+      window.initializeWeek();
+    } else {
+      console.error('initializeWeek er ikke definert. Sjekk konsoll for feil i hovedskriptet.');
+      const statusEl = document.getElementById('statusMessage');
+      if (statusEl) {
+        statusEl.innerHTML = '<div class="status-message status-error">Feil: initializeWeek mangler. Åpne konsollen (F12) for detaljer.</div>';
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
