@@ -159,24 +159,28 @@
       badgeEl.className = `status-badge ${type}`;
     }
 
-    // --- (4) Bygg uke-grid (med spesialknapper på Mandag) ---
+        // --- (4) Bygg uke-grid (med spesialknapper på Mandag) ---
     function initializeWeek(){
       const container = document.getElementById('weekContainer');
+      if (!container) return;
       container.innerHTML = '';
+
       Object.entries(dayMapping).forEach(([code, day]) => {
+        const isMonday = code === '1000';
+
         const card = document.createElement('div');
         card.className = 'day-card animate-in';
-        card.dataset.dayCode = code;
-        const isMonday = code === '1000';
+        card.setAttribute('data-day-code', code); // viktig for renderMonday-selector
+
         card.innerHTML = `
           <div class="day-header">
             <h3 class="day-title">${day.name}</h3>
-            <div style="display:flex;gap:8px">
-              ${isMonday ? `
-                <button id="genMondayBtn" class="btn btn-primary">Generer mandag</button>
-                <button id="resetMondayBtn" class="btn btn-alt">Nullstill dag</button>
-              ` : ''}
-            </div>
+            ${isMonday ? `
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" data-action="gen-monday">Generer mandag</button>
+                <button class="btn btn-alt" data-action="reset-monday">Nullstill dag</button>
+              </div>
+            ` : ``}
           </div>
           <div class="day-content">
             <div class="day-empty">
@@ -190,15 +194,24 @@
             </div>
           </div>
         `;
+
         container.appendChild(card);
+
+        // Koble knapper (kun Mandag) etter at elementene finnes
+        if (isMonday) {
+          const genBtn = card.querySelector('[data-action="gen-monday"]');
+          const resetBtn = card.querySelector('[data-action="reset-monday"]');
+          if (genBtn) genBtn.addEventListener('click', (e) => generateMonday(e.currentTarget));
+          if (resetBtn) resetBtn.addEventListener('click', () => refreshDay('1000'));
+        }
       });
 
-      // Koble knapper (kun Mandag)
-      const genBtn = document.getElementById('genMondayBtn');
-      const resetBtn = document.getElementById('resetMondayBtn');
-      if (genBtn) genBtn.addEventListener('click', () => generateMonday(genBtn));
-      if (resetBtn) resetBtn.addEventListener('click', () => refreshDay('1000'));
+      showStatus('Uke er klar. Trykk «Generer mandag».', 'success');
     }
+
+    // Eksponer funksjonen globalt
+    window.initializeWeek = initializeWeek;
+
 
     // --- (5) Parser (samme logikk som før) ---
     function parseAIOutput(text){
