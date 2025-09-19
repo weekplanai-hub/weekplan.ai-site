@@ -1,54 +1,60 @@
 // /tools/weekplan-bridge.js
 // Leser OpenRouter-nøkkel + valgt modell fra localStorage (satt i API Manager),
 // kaller OpenRouter chat/completions og returnerer PLAIN TEXT i 1000/200x-format.
-// Faller tilbake til en mini-demo om noe mangler.
+// Krever at nøkkel + modell er valgt i API Manager; ellers kastes en tydelig feil.
+// Ved andre feil faller vi tilbake til en mini-demo.
 
 import { DEMO_PROMPT } from './menuDemoPrompt.js';
+
+const API_SELECTION_REQUIRED = 'API_SELECTION_REQUIRED';
 
 async function runPrompt(promptText) {
   const prompt = (typeof promptText === 'string' && promptText.trim())
     ? promptText
     : DEMO_PROMPT;
+
+  const apiKey = (localStorage.getItem('api-key-openrouter') || '').trim();
+  const model = (localStorage.getItem('api-current-model-openrouter') || '').trim();
+
+  if (!apiKey || !model) {
+    const err = new Error('Manglende API-oppsett: Velg nøkkel og modell i API Manager før du kjører ukeplanen.');
+    err.code = API_SELECTION_REQUIRED;
+    throw err;
+  }
+
   // 1) Prøv OpenRouter direkte hvis nøkkel + modell finnes i localStorage
   try {
-    const apiKey = localStorage.getItem('api-key-openrouter') || '';
-    const model =
-      localStorage.getItem('api-current-model-openrouter') ||
-      'nvidia/nemotron-nano-9b-v2:free';
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Weekplan.ai'
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a chef assistant. Reply with ONLY the Weekplan 1000/200x format (lines starting with 1000..1006 for days, 2000 for meal header with B/L/D/S, 2001 title, 2002 recipe block, 2003 shopping block). No extra commentary.'
+          },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
 
-    if (apiKey && model) {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'Weekplan.ai'
-        },
-        body: JSON.stringify({
-          model,
-          temperature: 0.2,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a chef assistant. Reply with ONLY the Weekplan 1000/200x format (lines starting with 1000..1006 for days, 2000 for meal header with B/L/D/S, 2001 title, 2002 recipe block, 2003 shopping block). No extra commentary.'
-            },
-            { role: 'user', content: prompt }
-          ]
-        })
-      });
-
-      if (!res.ok) {
-        const t = await res.text().catch(()=>'');
-        throw new Error(`OpenRouter ${res.status}: ${t}`);
-      }
-
-      const data = await res.json();
-      const text = (data?.choices?.[0]?.message?.content || '').trim();
-      if (!text) throw new Error('Empty content from OpenRouter');
-      return text;
+    if (!res.ok) {
+      const t = await res.text().catch(()=>'');
+      throw new Error(`OpenRouter ${res.status}: ${t}`);
     }
+
+    const data = await res.json();
+    const text = (data?.choices?.[0]?.message?.content || '').trim();
+    if (!text) throw new Error('Empty content from OpenRouter');
+    return text;
   } catch (e) {
     console.warn('OpenRouter call failed:', e);
   }
@@ -75,4 +81,4 @@ async function runDemoPrompt() {
   return runPrompt(DEMO_PROMPT);
 }
 
-window.WeekplanBridge = { runPrompt, runDemoPrompt };
+window.WeekplanBridge = { runPrompt, runDemoPrompt, API_SELECTION_REQUIRED };
