@@ -40,7 +40,7 @@ npm run dev    # Starts Vite dev server on http://localhost:5173
 npm run build  # Outputs production build into dist/
 ```
 
-To configure Supabase for the planner, set the following environment variables before running `npm run dev` or `npm run build`:
+Supabase is preconfigured with the Weekplan.ai project credentials so the planner works out of the box. If you need to point the build at a different Supabase project, set the following environment variables before running `npm run dev` or `npm run build`:
 
 ```
 VITE_SUPABASE_URL="https://your-project.supabase.co"
