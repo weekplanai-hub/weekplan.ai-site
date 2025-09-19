@@ -6,6 +6,12 @@ const DEFAULT_ROWS = "B, L, D, S";               // rekkefølge på måltider
 const DEFAULT_NOTES = `Do not use output example data, but a menu suitable for this day of the year.
 8000 "No milk"`;
 
+// Tidligere genererte menyer i 9000-seksjonen (brukes for demo og fallback)
+const DEFAULT_SYSTEM_MENUS = [
+  'Eggs and ham (1000, B)',
+  'Quick Salmon & Potatoes (1000, D)'
+];
+
 // ---- Bygg "Actual preferences" dynamisk ----
 export function buildActualPreferences(dayCode = DEFAULT_DAY_CODE, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
   return `
@@ -17,7 +23,30 @@ ${extraNotes}
 }
 
 // ---- Bygg hele DEMO_PROMPT gitt en preferences-blokk ----
-export function buildDemoPrompt(preferencesBlock) {
+function formatSystemMenus(previousMenus = []) {
+  const cleaned = Array.from(new Set(
+    (previousMenus || [])
+      .map(item => typeof item === 'string' ? item.trim() : '')
+      .filter(Boolean)
+  ));
+
+  if (!cleaned.length) {
+    return [
+      'System: 9000',
+      'Previously generated menu headlines (xxx1 titles with day code + meal).',
+      '- (none yet — start fresh)'
+    ].join('\n');
+  }
+
+  const body = cleaned.map(item => (item.startsWith('-') ? item : `- ${item}`));
+  return [
+    'System: 9000',
+    'Previously generated menu headlines (xxx1 titles with day code + meal). Keep these fixed and do not regenerate them.',
+    ...body
+  ].join('\n');
+}
+
+export function buildDemoPrompt(preferencesBlock, previousMenus = []) {
   return `You are an expert in cooking and nutrition, with strong skills in creating well-tailored menus with accompanying recipes and shopping lists.
 See the section “Actual preferences” and create a menu for the current day that follows the instructions below. You must provide only one answer in the same form as the Output – example below.
 
@@ -56,8 +85,7 @@ Instructions (strict):
 Note: 8000 User preferences
 [User given text input]. Apply this knowledge to the menu.
 
-System: 9000
-Here we will add the menus generated, and this will be used as an input later to avoid duplication. Show lines with Menu headlines from the xxx1 series, and (day, letter) after the title. Se example. Do not skip this one.
+${formatSystemMenus(previousMenus)}
 
 Output – example:
 1000 Monday
@@ -126,25 +154,46 @@ Optional
 
 // ---- Backwards compatibility: behold et statisk DEMO_PROMPT (bruker 1000 som default) ----
 export const ACTUAL_PREFERENCES = buildActualPreferences(DEFAULT_DAY_CODE, DEFAULT_ROWS, DEFAULT_NOTES);
-export const DEMO_PROMPT = buildDemoPrompt(ACTUAL_PREFERENCES);
+export const DEMO_PROMPT = buildDemoPrompt(ACTUAL_PREFERENCES, DEFAULT_SYSTEM_MENUS);
 
 // ---- Hjelpefunksjoner for daglig generering ----
 
 // Bygg prompt for én spesifikk dag
-export function buildDemoPromptForDay(dayCode, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
+export function buildDemoPromptForDay(dayCode, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES, previousMenus = []) {
   const prefs = buildActualPreferences(dayCode, rows, extraNotes);
-  return buildDemoPrompt(prefs);
+  return buildDemoPrompt(prefs, previousMenus);
+}
+
+export function extractSystemMenus(outputText) {
+  if (!outputText) return [];
+  const lines = String(outputText).split('\n');
+  const idx = lines.findIndex(line => line.trim().startsWith('9000'));
+  if (idx === -1) return [];
+
+  return lines
+    .slice(idx + 1)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => line.replace(/^[-•\s]+/, '').trim())
+    .filter(Boolean);
 }
 
 // Eksempel: loop gjennom 1000–1006 og kall API
 // callApi(prompt) er en plassholder for din faktiske API-kall-funksjon.
 export async function generateWeek(callApi, rows = DEFAULT_ROWS, extraNotes = DEFAULT_NOTES) {
   const results = [];
+  const memory = [];
+
   for (let day = 1000; day <= 1006; day++) {
-    const prompt = buildDemoPromptForDay(day, rows, extraNotes);
+    const prompt = buildDemoPromptForDay(day, rows, extraNotes, memory);
     // eslint-disable-next-line no-await-in-loop
     const res = await callApi(prompt);
     results.push({ dayCode: day, response: res });
+
+    extractSystemMenus(res).forEach(item => {
+      if (!memory.includes(item)) memory.push(item);
+    });
   }
+
   return results;
 }

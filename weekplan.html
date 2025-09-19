@@ -30,6 +30,10 @@
     .nav{display:flex;justify-content:space-between;align-items:center}
     .brand{font-size:28px;font-weight:800;background:linear-gradient(45deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .status-badge{padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600;background:var(--success);color:#fff}
+    .status-badge.success{background:var(--success)}
+    .status-badge.error{background:var(--error)}
+    .status-badge.warning{background:var(--warning)}
+    .status-badge.info{background:var(--accent)}
 
     /* Cards */
     .card{background:var(--panel);border-radius:var(--radius);padding:30px;margin-bottom:30px;box-shadow:var(--shadow);transition:var(--transition)}
@@ -89,10 +93,14 @@
     .recipe-close:hover{background:#edf2f7;color:#4a5568;transform:scale(1.05)}
     .pre{background:#f8fafc;padding:20px;border-radius:12px;border-left:4px solid var(--accent);white-space:pre-wrap;font-family:ui-sans-serif,system-ui,sans-serif;font-size:15px;line-height:1.6;color:#2d3748}
 
-    .week-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .week-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+    .week-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .week-actions .btn{display:inline-flex;align-items:center;gap:8px}
     .status-message{padding:12px 16px;border-radius:8px;margin-top:16px;font-weight:600}
     .status-success{background:rgba(72,187,120,.1);color:var(--success);border:1px solid var(--success)}
     .status-error{background:rgba(229,62,62,.1);color:var(--error);border:1px solid var(--error)}
+    .status-warning{background:rgba(237,137,54,.12);color:var(--warning);border:1px solid var(--warning)}
+    .status-info{background:rgba(66,153,225,.12);color:var(--accent);border:1px solid var(--accent)}
 
     @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     .animate-in{animation:slideIn .5s ease-out}
@@ -116,7 +124,15 @@
 
     <!-- Week Plan -->
     <section class="card">
-      <h2 class="card-title">📅 Din Ukeplan</h2>
+      <div class="week-header">
+        <h2 class="card-title">📅 Din Ukeplan</h2>
+        <div class="week-actions">
+          <button class="btn btn-primary" id="generateWeekBtn" type="button">
+            <span aria-hidden="true">▶</span>
+            Generer ukeplan
+          </button>
+        </div>
+      </div>
       <div id="weekContainer" class="week-container"></div>
       <div id="statusMessage"></div>
     </section>
@@ -130,7 +146,7 @@
 
   <script type="module">
 // --- (1) Forsøk å importere byggere fra menuDemoPrompt.js ---
-let DEMO_PROMPT, buildDemoPromptForDay;
+let DEMO_PROMPT, buildDemoPromptForDay, extractSystemMenus;
 
 async function importMenuBuilder() {
   // 1) absolutt
@@ -138,6 +154,7 @@ async function importMenuBuilder() {
     const mod = await import('/tools/menuDemoPrompt.js');
     DEMO_PROMPT = mod?.DEMO_PROMPT;
     buildDemoPromptForDay = mod?.buildDemoPromptForDay;
+    extractSystemMenus = mod?.extractSystemMenus;
     return;
   } catch {}
 
@@ -146,6 +163,7 @@ async function importMenuBuilder() {
     const mod = await import('./tools/menuDemoPrompt.js');
     DEMO_PROMPT = mod?.DEMO_PROMPT;
     buildDemoPromptForDay = mod?.buildDemoPromptForDay;
+    extractSystemMenus = mod?.extractSystemMenus;
   } catch {
     // stille fallback – vi har mock i runPromptViaApiManager
   }
@@ -167,11 +185,23 @@ await importMenuBuilder();
 
     // --- (3) UI helpers ---
     function showStatus(message, type='success'){
+      const allowed = new Set(['success','error','warning','info']);
+      if (!allowed.has(type)) type = 'info';
       const statusEl = document.getElementById('statusMessage');
+      if (statusEl) {
+        statusEl.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+      }
       const badgeEl = document.getElementById('status-badge');
-      statusEl.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
-      badgeEl.textContent = (type==='success') ? '✅ Klar' : '❌ Feil';
-      badgeEl.className = `status-badge ${type}`;
+      if (badgeEl) {
+        const labelMap = {
+          success: '✅ Klar',
+          error: '❌ Feil',
+          warning: '⚠️ Sjekk',
+          info: 'ℹ️ Info'
+        };
+        badgeEl.textContent = labelMap[type] || 'ℹ️ Status';
+        badgeEl.className = `status-badge ${type}`;
+      }
     }
 
         // --- (4) Bygg uke-grid (med spesialknapper på Mandag) ---
@@ -181,27 +211,13 @@ await importMenuBuilder();
       container.innerHTML = '';
 
       Object.entries(dayMapping).forEach(([code, day]) => {
-        const isMonday = code === '1000';
-
         const card = document.createElement('div');
         card.className = 'day-card animate-in';
-        card.setAttribute('data-day-code', code); // viktig for renderMonday-selector
+        card.setAttribute('data-day-code', code);
 
         card.innerHTML = `
           <div class="day-header">
             <h3 class="day-title">${day.name}</h3>
-            ${isMonday ? `
-              <div style="display:flex;gap:8px">
-                <button
-                  class="btn btn-primary"
-                  data-action="gen-monday"
-                  aria-label="Generer mandag"
-                  title="Generer mandag"
-                  style="padding:8px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;"
-                >▶</button>
-              </div>
-            ` : ``}
-
           </div>
           <div class="day-content">
             <div class="day-empty">
@@ -217,18 +233,14 @@ await importMenuBuilder();
         `;
 
         container.appendChild(card);
-
-        // Koble knapper (kun Mandag) etter at elementene finnes
-      if (isMonday) {
-        const genBtn = card.querySelector('[data-action="gen-monday"]');
-        const resetBtn = card.querySelector('[data-action="reset-monday"]');
-        if (genBtn) genBtn.addEventListener('click', (e) => generateWeekFromMonday(e.currentTarget));
-        if (resetBtn) resetBtn.addEventListener('click', () => refreshDay('1000'));
-      }
-
       });
 
-      showStatus('Uke er klar. Trykk «Generer mandag».', 'success');
+      const systemInfoEl = document.getElementById('systemInfo');
+      if (systemInfoEl) {
+        systemInfoEl.textContent = 'Ingen data ennå...';
+      }
+
+      showStatus('Uke er klar. Trykk «Generer ukeplan».', 'success');
     }
 
     // Eksponer funksjonen globalt
@@ -300,6 +312,56 @@ await importMenuBuilder();
       });
 
       return result;
+    }
+
+    function getSelectionErrorCode(){
+      return window.WeekplanBridge?.API_SELECTION_REQUIRED || 'API_SELECTION_REQUIRED';
+    }
+
+    function isSelectionError(err){
+      if (!err) return false;
+      if (err.code && err.code === getSelectionErrorCode()) return true;
+      const msg = String(err.message || '').toLowerCase();
+      return msg.includes('api-oppsett') || msg.includes('api manager');
+    }
+
+    function fallbackExtractSystemMenus(text){
+      if (!text) return [];
+      const raw = String(text);
+      const trimmed = raw.split('\n').map(line => line.trim()).filter(Boolean);
+      if (!trimmed.length) return [];
+      const startIdx = trimmed.findIndex(line => /^9000/.test(line));
+      const relevant = startIdx === -1 ? trimmed : trimmed.slice(startIdx + 1);
+      return relevant
+        .map(line => line.replace(/^[-•\s]+/, '').trim())
+        .filter(line => line && !/^9000/.test(line) && !/^errors?:/i.test(line));
+    }
+
+    function collectSystemMenus(rawOutput, parsedSystemText = ''){
+      const extractor = (typeof extractSystemMenus === 'function')
+        ? extractSystemMenus
+        : fallbackExtractSystemMenus;
+      let menus = extractor(rawOutput);
+      if (!Array.isArray(menus)) menus = [];
+      if (!menus.length && parsedSystemText) {
+        const fallbackMenus = fallbackExtractSystemMenus(parsedSystemText);
+        if (fallbackMenus.length) menus = fallbackMenus;
+      }
+      return menus
+        .map(item => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean);
+    }
+
+    function formatSystemMenusForDisplay(menus){
+      if (!menus || !menus.length) return '';
+      const unique = [];
+      menus.forEach(item => {
+        const clean = item.startsWith('-') ? item.slice(1).trim() : item.trim();
+        if (clean && !unique.includes(clean)) unique.push(clean);
+      });
+      if (!unique.length) return '';
+      const lines = unique.map(item => `- ${item}`);
+      return ['System 9000 – genererte menyer:', ...lines].join('\n');
     }
 
 // --- (6) Render én vilkårlig dag (1000–1006) ---
@@ -456,10 +518,13 @@ function renderDay(parsedData, dayCode){
 // --- (9) API-bridge som kan kjøre vilkårlig prompt (per dag) ---
 async function runPromptViaApiManager(promptText, dayCodeForFallback = 1000){
   // A) WeekplanBridge med fri prompt
-  if (window.WeekplanBridge?.runPrompt){
+  const bridge = window.WeekplanBridge || {};
+  if (typeof bridge.runPrompt === 'function'){
     try {
-      return await window.WeekplanBridge.runPrompt(promptText);
+      return await bridge.runPrompt(promptText);
     } catch (e) {
+      const selectionCode = bridge.API_SELECTION_REQUIRED || getSelectionErrorCode();
+      if (e && (e.code === selectionCode || isSelectionError(e))) throw e;
       console.warn('WeekplanBridge.runPrompt feilet:', e);
     }
   }
@@ -506,16 +571,30 @@ async function runPromptViaApiManager(promptText, dayCodeForFallback = 1000){
   ].join('\n');
 }
 
-// --- (10) Generer HELE UKEN (1000–1006) når vi trykker på mandagsknappen ---
+// --- (10) Generer HELE UKEN (1000–1006) via hovedknappen ---
 async function generateWeekFromMonday(button){
-  const originalLabel = button.textContent;
+  const triggerButton = button || document.getElementById('generateWeekBtn');
+  const originalLabel = triggerButton ? triggerButton.textContent : '';
   const errors = [];
-  let lastSystem = '';
+  const systemMenus = [];
+  let abortError = null;
+  const missingSelectionMessage = 'Velg API-nøkkel og modell i API Manager før du genererer ukeplanen.';
+
+  const storedKey = (localStorage.getItem('api-key-openrouter') || '').trim();
+  const storedModel = (localStorage.getItem('api-current-model-openrouter') || '').trim();
+  if (!storedKey || !storedModel) {
+    showStatus(missingSelectionMessage, 'error');
+    const sysMissing = document.getElementById('systemInfo');
+    if (sysMissing) sysMissing.textContent = missingSelectionMessage;
+    return;
+  }
 
   try{
-    button.disabled = true;
-    button.textContent = 'Genererer uke…';
-    showStatus('Jobber med å hente menyer for hele uken …');
+    if (triggerButton) {
+      triggerButton.disabled = true;
+      triggerButton.textContent = 'Genererer uke…';
+    }
+    showStatus('Jobber med å hente menyer for hele uken …', 'info');
 
     // Vis "laster" i alle dagkort først
     for (let day = 1000; day <= 1006; day++){
@@ -528,10 +607,13 @@ async function generateWeekFromMonday(button){
       }
     }
 
-    // 7 API-kall sekvensielt, men ikke stopp ved feil
     for (let day = 1000; day <= 1006; day++){
+      if (abortError) break;
       try {
-        const prompt = buildDemoPromptForDay ? buildDemoPromptForDay(day) : DEMO_PROMPT;
+        const previousMenusForPrompt = systemMenus.slice();
+        const prompt = buildDemoPromptForDay
+          ? buildDemoPromptForDay(day, undefined, undefined, previousMenusForPrompt)
+          : DEMO_PROMPT;
         const raw = await runPromptViaApiManager(prompt, day);
 
         if (typeof raw !== 'string' || !raw.trim()) {
@@ -539,21 +621,26 @@ async function generateWeekFromMonday(button){
         }
 
         const parsed = parseAIOutput(raw);
-
+        const dayKey = String(day);
         const oneDay = {};
-        if (parsed[String(day)]) oneDay[String(day)] = parsed[String(day)];
-        if (parsed.system) { oneDay.system = parsed.system; lastSystem = parsed.system; }
-
-        // Hvis parser ikke ga noe for dagen, kast
-        if (!oneDay[String(day)]) throw new Error('Ugyldig format for dag ' + day);
+        if (parsed[dayKey]) oneDay[dayKey] = parsed[dayKey];
+        if (!oneDay[dayKey]) throw new Error('Ugyldig format for dag ' + day);
 
         renderDay(oneDay, day);
         showStatus(`✅ Generert: ${dayMapping[day]?.name || day}`, 'success');
+
+        const menusFromOutput = collectSystemMenus(raw, parsed.system);
+        menusFromOutput.forEach(menu => {
+          if (!systemMenus.includes(menu)) systemMenus.push(menu);
+        });
       } catch (e){
+        if (isSelectionError(e)) {
+          abortError = e;
+          break;
+        }
         console.error(`Dag ${day} feilet:`, e);
         errors.push({ day, err: e });
 
-        // Marker kortet med feil men la resten fortsette
         const card = document.querySelector(`[data-day-code="${day}"] .day-content`);
         if (card){
           card.innerHTML = `<div class="day-empty" style="height:auto;color:#e53e3e">
@@ -564,27 +651,49 @@ async function generateWeekFromMonday(button){
       }
     }
 
-    if (lastSystem) {
-      document.getElementById('systemInfo').textContent = lastSystem;
+    const systemInfoEl = document.getElementById('systemInfo');
+    if (systemInfoEl) {
+      let infoText = formatSystemMenusForDisplay(systemMenus);
+      if (!infoText && !abortError) {
+        infoText = 'Ingen data ennå...';
+      }
+      if (abortError) {
+        infoText = abortError.message || missingSelectionMessage;
+      } else if (errors.length) {
+        const list = errors.map(e => `• ${dayMapping[e.day]?.name || e.day}: ${e.err?.message || 'ukjent feil'}`).join('\n');
+        infoText = `${infoText ? infoText + '\n\n' : ''}Errors:\n${list}`;
+      }
+      systemInfoEl.textContent = infoText;
+    }
+
+    if (abortError) {
+      showStatus(abortError.message || missingSelectionMessage, 'error');
+      return;
     }
 
     if (errors.length){
-      const list = errors.map(e => `• ${dayMapping[e.day]?.name || e.day}: ${e.err?.message || 'ukjent feil'}`).join('\n');
       showStatus('⚠️ Noen dager feilet. Se System Info / konsoll.', 'error');
-      // legg en kort logg i systeminfo (bevarer eksisterende)
-      const sys = document.getElementById('systemInfo');
-      if (sys){
-        sys.textContent = (sys.textContent ? sys.textContent + '\n\n' : '') +
-          'Errors:\n' + list;
-      }
     } else {
       showStatus('🎉 Hele uken er generert!', 'success');
     }
 
+  } catch (err){
+    console.error('Generering av uke feilet:', err);
+    const fallbackMessage = err?.message || 'Ukjent feil under generering av uke.';
+    showStatus(fallbackMessage, 'error');
+    const sys = document.getElementById('systemInfo');
+    if (sys) sys.textContent = fallbackMessage;
   } finally{
-    button.disabled = false;
-    button.textContent = originalLabel;
+    if (triggerButton) {
+      triggerButton.disabled = false;
+      triggerButton.textContent = originalLabel || 'Generer ukeplan';
+    }
   }
+}
+
+const generateWeekBtn = document.getElementById('generateWeekBtn');
+if (generateWeekBtn) {
+  generateWeekBtn.addEventListener('click', (e) => generateWeekFromMonday(e.currentTarget));
 }
 
   
