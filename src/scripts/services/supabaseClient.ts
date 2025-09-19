@@ -15,13 +15,24 @@ declare global {
 
 export type WeekplanSupabase = SupabaseClient<any, 'public', any>;
 
+function normalize(value: string | undefined): string | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function resolveConfig(): { url: string; key: string } | null {
-  const envUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+  const envUrl = normalize(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+  const envKey = normalize(import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
   const runtimeConfig = window.WEEKPLAN_CONFIG ?? {};
-  const url = envUrl ?? runtimeConfig.supabaseUrl ?? DEFAULT_SUPABASE_URL;
-  const key = envKey ?? runtimeConfig.supabaseAnonKey ?? DEFAULT_SUPABASE_ANON_KEY;
+  const runtimeUrl = normalize(runtimeConfig.supabaseUrl);
+  const runtimeKey = normalize(runtimeConfig.supabaseAnonKey);
+  const url = envUrl ?? runtimeUrl ?? DEFAULT_SUPABASE_URL;
+  const key = envKey ?? runtimeKey ?? DEFAULT_SUPABASE_ANON_KEY;
   if (!url || !key) {
+    console.warn('Supabase configuration missing. Falling back to disabled auth UI.');
     return null;
   }
   return { url, key };
