@@ -1,6 +1,8 @@
 import '../styles-imports';
 import '../../styles/preferences.css';
 
+import type { PostgrestError } from '@supabase/supabase-js';
+
 import { createEl, qs } from '../core/dom';
 import { cloneState, initialState, toExportObject } from '../features/preferences/state';
 import { PRESETS, TOPICS } from '../features/preferences/presets';
@@ -45,6 +47,50 @@ interface DevPanelHandle {
 const MEAL_OPTIONS: MealOption[] = ['breakfast', 'lunch', 'dinner', 'snacks', 'desserts'];
 
 const state: PreferencesState = cloneState(initialState);
+
+const PREFS_SETUP_HINT =
+  'Supabase prefs table missing. Run supabase/prefs.sql from the repo README.';
+
+type PostgrestLikeError = PostgrestError & { details?: string };
+
+function isPostgrestError(err: unknown): err is PostgrestLikeError {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    'message' in err &&
+    typeof (err as { message?: unknown }).message === 'string'
+  );
+}
+
+function isMissingPrefsTable(err: PostgrestLikeError | Error): boolean {
+  const code = 'code' in err ? String((err as { code?: unknown }).code ?? '') : '';
+  const message =
+    typeof err.message === 'string' ? err.message.toLowerCase() : String(err.message ?? '').toLowerCase();
+  const details = 'details' in err ? String((err as { details?: unknown }).details ?? '').toLowerCase() : '';
+  return (
+    code === '42P01' ||
+    message.includes('relation') && message.includes('prefs') ||
+    details.includes('prefs table') ||
+    details.includes('relation "prefs"')
+  );
+}
+
+function describeSupabaseError(err: unknown, fallback: string): string {
+  if (isPostgrestError(err)) {
+    if (isMissingPrefsTable(err)) {
+      return PREFS_SETUP_HINT;
+    }
+    return err.message || fallback;
+  }
+  if (err instanceof Error) {
+    if (isMissingPrefsTable(err)) {
+      return PREFS_SETUP_HINT;
+    }
+    return err.message || fallback;
+  }
+  return fallback;
+}
 
 function buildHero(openQuick: () => void): HTMLElement {
   const hero = createEl('section', { className: 'preferences-hero' });
@@ -409,7 +455,7 @@ function buildDeveloperPanel(
       if (error) throw error;
       setStatus('ok', 'Saved current preferences ✅');
     } catch (err) {
-      setStatus('error', err instanceof Error ? err.message : 'Save failed.');
+      setStatus('error', describeSupabaseError(err, 'Save failed.'));
     }
   });
 
@@ -441,7 +487,7 @@ function buildDeveloperPanel(
       applyState(true);
       setStatus('ok', 'Imported latest preferences ✅');
     } catch (err) {
-      setStatus('error', err instanceof Error ? err.message : 'Import failed.');
+      setStatus('error', describeSupabaseError(err, 'Import failed.'));
     }
   });
 

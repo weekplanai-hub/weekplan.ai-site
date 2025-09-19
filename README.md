@@ -49,6 +49,15 @@ VITE_SUPABASE_ANON_KEY="public-anon-key"
 
 Alternatively, when hosting the built site you can expose a `window.WEEKPLAN_CONFIG` object with `supabaseUrl` and `supabaseAnonKey` properties before loading the planner bundle.
 
+### Supabase database setup
+
+The planner and developer utilities expect the following tables inside your Supabase project:
+
+- `profiles`, `plans` and `plan_items` (see the SQL snippet in the previous README revision if you need to recreate them).
+- `prefs` – backing storage for the developer “quick preferences” panel on the preferences page.
+
+To provision the developer prefs table run [`supabase/prefs.sql`](supabase/prefs.sql) in the Supabase SQL editor or include it in your migrations. The script creates the table with anonymous read/write access so the anon key used during testing can save demo rows. If you need stricter rules, update the policy accordingly after the initial run.
+
 ## ✅ Available functionality
 
 - Email/password authentication with Supabase and automatic profile creation.
