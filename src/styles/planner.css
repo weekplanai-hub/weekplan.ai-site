@@ -1,0 +1,243 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(248, 250, 252, 0.9);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navbar-inner {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 22px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.brand span {
+  color: var(--primary);
+}
+
+.nav-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+main {
+  flex: 1;
+}
+
+.planner-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: clamp(28px, 6vw, 40px);
+  align-items: start;
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 48px) clamp(16px, 5vw, 32px) clamp(60px, 8vw, 80px);
+}
+
+@media (max-width: 1024px) {
+  .planner-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebar-card {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: clamp(80px, 10vw, 120px);
+}
+
+.sidebar-card h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sidebar-card p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.day-grid {
+  display: grid;
+  gap: clamp(16px, 3vw, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.planner-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.planner-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(120deg, rgba(37, 99, 235, 0.08), rgba(56, 189, 248, 0.08));
+}
+
+.card-header strong {
+  font-size: 1rem;
+}
+
+.card-header button {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+.card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--bg-muted);
+}
+
+.card-body {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.card-body h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.card-empty {
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.plan-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auth-card {
+  width: min(480px, 100%);
+  margin: clamp(40px, 8vw, 60px) auto;
+  text-align: center;
+  display: grid;
+  gap: 18px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.6rem);
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+.auth-status {
+  min-height: 22px;
+  color: var(--danger);
+  font-size: 0.95rem;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 6vw, 32px);
+  z-index: 100;
+}
+
+.dialog {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 5vw, 32px);
+  width: min(440px, 100%);
+  display: grid;
+  gap: 18px;
+  box-shadow: var(--shadow-lg);
+}
+
+.dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.dialog footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+}
+
+.dialog footer button {
+  flex: 1;
+}
+
+input[type="color"] {
+  height: 44px;
+  padding: 0;
+}
+
+.recipe-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.92);
+  color: white;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  z-index: 120;
+}
+
+.hidden {
+  display: none !important;
+}

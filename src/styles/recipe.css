@@ -1,0 +1,146 @@
+.page-header {
+  padding: clamp(24px, 6vw, 40px) 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.page-header nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-header .brand {
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.page-header .brand span {
+  color: var(--primary);
+}
+
+.generator {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 48px) clamp(16px, 6vw, 32px) clamp(80px, 10vw, 120px);
+  display: grid;
+  gap: clamp(20px, 4vw, 32px);
+}
+
+.card-stack {
+  display: grid;
+  gap: clamp(20px, 4vw, 28px);
+}
+
+.card h2,
+.card h3 {
+  margin: 0 0 12px;
+}
+
+.status {
+  min-height: 24px;
+  font-weight: 600;
+}
+
+.status.ok {
+  color: var(--success);
+}
+
+.status.error {
+  color: var(--danger);
+}
+
+.status.loading {
+  color: var(--primary);
+}
+
+.controls-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.result-grid {
+  display: grid;
+  gap: clamp(16px, 3vw, 24px);
+}
+
+.recipe-card {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 14px;
+  padding: clamp(18px, 4vw, 24px);
+}
+
+.recipe-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recipe-card img {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  height: 200px;
+  object-fit: cover;
+}
+
+.recipe-card .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.recipe-card ul,
+.recipe-card ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink-muted);
+  display: grid;
+  gap: 6px;
+}
+
+.recipe-card details {
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  padding-top: 12px;
+}
+
+.recipe-card footer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.recipe-card footer button {
+  flex: 1;
+  min-width: 160px;
+}
+
+.recipe-card footer button.btn-secondary {
+  color: var(--ink);
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+}

@@ -1,0 +1,38 @@
+export const PRESETS = {
+  goals: ['save_time', 'weight_loss', 'muscle_gain', 'enjoyment', 'learn_to_cook', 'consistency'],
+  diets: ['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'flexitarian', 'keto', 'mediterranean'],
+  allergies: ['peanuts', 'lactose', 'gluten', 'shellfish', 'soy', 'eggs'],
+  avoid: ['mushrooms', 'olives', 'cilantro'],
+  must: ['chicken', 'rice', 'beans'],
+  cuisines: ['mediterranean', 'mexican', 'italian', 'indian', 'thai', 'japanese', 'nordic'],
+  proteins: ['chicken', 'fish', 'salmon', 'tofu', 'lentils', 'beans', 'eggs'],
+  equipment: ['stovetop', 'oven', 'microwave', 'air_fryer', 'slow_cooker', 'blender', 'pressure_cooker'],
+  skill: ['beginner', 'intermediate', 'advanced'],
+  budget: ['low', 'medium', 'high'],
+  leftovers: ['none', 'ok_for_lunch', 'prefer_leftovers'],
+  servings: ['1', '2', '4'],
+  time: [
+    { label: '≤20 min', value: 20 },
+    { label: '~30 min', value: 30 },
+    { label: '45+ min', value: 45 },
+  ],
+};
+
+export const TOPICS = [
+  { id: 'goals', label: 'Goals', emoji: '🎯' },
+  { id: 'diet', label: 'Diet style', emoji: '🥗' },
+  { id: 'allergies', label: 'Allergies', emoji: '⚠️' },
+  { id: 'avoid', label: 'Never show', emoji: '🚫' },
+  { id: 'must', label: 'Must include', emoji: '✅' },
+  { id: 'time', label: 'Time per dinner', emoji: '⏱️' },
+  { id: 'variety', label: 'Variety', emoji: '🔁' },
+  { id: 'skill', label: 'Skill', emoji: '🧑‍🍳' },
+  { id: 'budget', label: 'Budget', emoji: '💸' },
+  { id: 'leftovers', label: 'Leftovers', emoji: '🍱' },
+  { id: 'servings', label: 'Servings', emoji: '🍽️' },
+  { id: 'cuisines', label: 'Cuisines', emoji: '🍜' },
+  { id: 'spice', label: 'Spice level', emoji: '🌶️' },
+  { id: 'dessert', label: 'Desserts', emoji: '🍨' },
+  { id: 'proteins', label: 'Proteins', emoji: '🍗' },
+  { id: 'equipment', label: 'Equipment', emoji: '🔧' },
+] as const;
