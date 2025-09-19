@@ -6,6 +6,7 @@ import { cloneState, initialState, toExportObject } from '../features/preference
 import { PRESETS, TOPICS } from '../features/preferences/presets';
 import { addPresetIfMissing, isTopicSet, toggleArrayValue } from '../features/preferences/logic';
 import type { PreferencesState, TopicId } from '../types/preferences';
+import { getSupabase } from '../services/supabaseClient';
 
 interface QuickDialogRefs {
   dialog: HTMLDialogElement;
@@ -34,6 +35,14 @@ interface HubDialogRefs {
   backBtn: HTMLButtonElement;
   closeButtons: HTMLButtonElement[];
 }
+
+type MealOption = 'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'desserts';
+
+interface DevPanelHandle {
+  syncFromState(): void;
+}
+
+const MEAL_OPTIONS: MealOption[] = ['breakfast', 'lunch', 'dinner', 'snacks', 'desserts'];
 
 const state: PreferencesState = cloneState(initialState);
 
@@ -216,6 +225,238 @@ function buildHubDialog(): HubDialogRefs {
   };
 }
 
+function buildDeveloperPanel(
+  container: HTMLElement,
+  quickRefs: QuickDialogRefs,
+  onStateChange: () => void
+): DevPanelHandle {
+  const section = createEl('section', {
+    className: 'dev-wrap',
+    attrs: { 'aria-label': 'Developer utilities' },
+  });
+  const heading = createEl('h2', { className: 'dev-title', text: 'Developer utilities' });
+  const note = createEl('p', {
+    className: 'dev-note muted',
+    text: 'Sync demo preferences with Supabase to test database persistence.',
+  });
+  const grid = createEl('div', { className: 'dev-grid' });
+
+  const card = createEl('div', { className: 'dev-card' });
+  card.append(
+    createEl('h3', { text: 'Supabase quick prefs' }),
+    createEl('p', {
+      className: 'muted',
+      text: 'Save the servings count and meal toggles for quick demos.',
+    })
+  );
+
+  const counter = createEl('div', { className: 'dev-counter' });
+  const minus = createEl('button', {
+    className: 'dev-circle',
+    text: '−',
+    attrs: { type: 'button', 'aria-label': 'Decrease servings' },
+  }) as HTMLButtonElement;
+  const value = createEl('span', { className: 'dev-value', text: '2' });
+  const plus = createEl('button', {
+    className: 'dev-circle',
+    text: '+',
+    attrs: { type: 'button', 'aria-label': 'Increase servings' },
+  }) as HTMLButtonElement;
+  counter.append(minus, value, plus);
+  card.append(counter);
+
+  const mealsWrap = createEl('div', { className: 'dev-meals' });
+  const mealButtons = new Map<MealOption, HTMLButtonElement>();
+  MEAL_OPTIONS.forEach((meal) => {
+    const btn = createEl('button', {
+      className: 'dev-meal',
+      text: meal.charAt(0).toUpperCase() + meal.slice(1),
+      attrs: { type: 'button' },
+    }) as HTMLButtonElement;
+    btn.dataset.meal = meal;
+    btn.addEventListener('click', () => {
+      toggleMeal(meal);
+    });
+    mealsWrap.appendChild(btn);
+    mealButtons.set(meal, btn);
+  });
+  card.append(mealsWrap);
+
+  const actions = createEl('div', { className: 'dev-actions' });
+  const saveBtn = createEl('button', {
+    className: 'btn btn-primary',
+    text: 'Save to Supabase',
+    attrs: { type: 'button' },
+  }) as HTMLButtonElement;
+  const loadBtn = createEl('button', {
+    className: 'btn btn-secondary',
+    text: 'Load latest row',
+    attrs: { type: 'button' },
+  }) as HTMLButtonElement;
+  actions.append(saveBtn, loadBtn);
+  card.append(actions);
+
+  const outputs = createEl('div', { className: 'dev-outputs' });
+  const peopleOutput = document.createElement('input');
+  peopleOutput.readOnly = true;
+  peopleOutput.placeholder = 'people';
+  const mealsOutput = document.createElement('input');
+  mealsOutput.readOnly = true;
+  mealsOutput.placeholder = 'meals (comma-separated)';
+  outputs.append(peopleOutput, mealsOutput);
+  card.append(outputs);
+
+  const status = createEl('p', {
+    className: 'dev-status muted',
+    text: 'Supabase ready when configured.',
+  });
+  status.setAttribute('data-status', 'idle');
+  card.append(status);
+
+  grid.append(card);
+  section.append(heading, note, grid);
+  container.appendChild(section);
+
+  const servingValues = Array.from(quickRefs.servings.options)
+    .map((option) => Number(option.value))
+    .filter((value) => Number.isFinite(value));
+  const minServings = Math.min(...servingValues, 1);
+  const maxServings = Math.max(...servingValues, 6);
+
+  const devState = {
+    people: Number.isFinite(state.mealRules.servingsPerRecipe)
+      ? Math.round(state.mealRules.servingsPerRecipe)
+      : 2,
+    meals: new Set<MealOption>(['breakfast', 'lunch', 'dinner']),
+  };
+
+  const setStatus = (mode: 'idle' | 'loading' | 'ok' | 'error', message: string): void => {
+    status.dataset.status = mode;
+    status.textContent = message;
+    status.classList.toggle('muted', mode === 'idle');
+  };
+
+  const clampServings = (value: number): number => {
+    if (!Number.isFinite(value)) return minServings;
+    return Math.min(maxServings, Math.max(minServings, Math.round(value)));
+  };
+
+  const ensureMeals = (): void => {
+    if (devState.meals.size === 0) {
+      devState.meals.add('dinner');
+    }
+  };
+
+  const applyMealsFromState = (): void => {
+    const focus = state.mealRules.focusMeals;
+    if (typeof focus === 'string' && MEAL_OPTIONS.includes(focus as MealOption)) {
+      devState.meals = new Set<MealOption>([focus as MealOption]);
+    }
+    ensureMeals();
+  };
+
+  const applyState = (emit = true): void => {
+    devState.people = clampServings(devState.people);
+    ensureMeals();
+    value.textContent = String(devState.people);
+    mealButtons.forEach((btn, meal) => {
+      btn.classList.toggle('active', devState.meals.has(meal));
+    });
+    peopleOutput.value = String(devState.people);
+    mealsOutput.value = Array.from(devState.meals).join(', ');
+    quickRefs.servings.value = String(devState.people);
+    state.mealRules.servingsPerRecipe = devState.people;
+    const [firstMeal] = devState.meals;
+    state.mealRules.focusMeals = firstMeal ?? 'dinner';
+    if (emit) {
+      onStateChange();
+    }
+  };
+
+  const toggleMeal = (meal: MealOption): void => {
+    if (devState.meals.has(meal)) {
+      if (devState.meals.size === 1) {
+        return;
+      }
+      devState.meals.delete(meal);
+    } else {
+      devState.meals.add(meal);
+    }
+    applyState(true);
+  };
+
+  minus.addEventListener('click', () => {
+    devState.people = clampServings(devState.people - 1);
+    applyState(true);
+  });
+
+  plus.addEventListener('click', () => {
+    devState.people = clampServings(devState.people + 1);
+    applyState(true);
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    setStatus('loading', 'Saving to Supabase…');
+    const client = getSupabase();
+    if (!client) {
+      setStatus('error', 'Supabase client unavailable. Check keys.');
+      return;
+    }
+    try {
+      const { error } = await client.from('prefs').insert([
+        { people: devState.people, meals: Array.from(devState.meals) },
+      ]);
+      if (error) throw error;
+      setStatus('ok', 'Saved current preferences ✅');
+    } catch (err) {
+      setStatus('error', err instanceof Error ? err.message : 'Save failed.');
+    }
+  });
+
+  loadBtn.addEventListener('click', async () => {
+    setStatus('loading', 'Loading latest row…');
+    const client = getSupabase();
+    if (!client) {
+      setStatus('error', 'Supabase client unavailable. Check keys.');
+      return;
+    }
+    try {
+      const { data, error } = await client.from('prefs').select('*').order('id', { ascending: false }).limit(1);
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        setStatus('error', 'No rows found in prefs table.');
+        return;
+      }
+      const row = data[0] as { people?: unknown; meals?: unknown };
+      if (typeof row.people === 'number' && Number.isFinite(row.people)) {
+        devState.people = clampServings(row.people);
+      }
+      if (Array.isArray(row.meals)) {
+        const cleaned = row.meals
+          .filter((meal): meal is MealOption => typeof meal === 'string' && MEAL_OPTIONS.includes(meal as MealOption));
+        if (cleaned.length) {
+          devState.meals = new Set<MealOption>(cleaned);
+        }
+      }
+      applyState(true);
+      setStatus('ok', 'Imported latest preferences ✅');
+    } catch (err) {
+      setStatus('error', err instanceof Error ? err.message : 'Import failed.');
+    }
+  });
+
+  const syncFromState = (): void => {
+    devState.people = clampServings(state.mealRules.servingsPerRecipe);
+    applyMealsFromState();
+    applyState(false);
+  };
+
+  applyMealsFromState();
+  applyState(false);
+
+  return { syncFromState };
+}
+
 function updateQuickPreview(refs: QuickDialogRefs, refsHub: HubDialogRefs): void {
   const exported = JSON.stringify(toExportObject(state), null, 2);
   refs.preview.textContent = exported;
@@ -249,6 +490,8 @@ function buildPreferencesPage(): void {
   const hero = buildHero(openQuick);
   const app = qs<HTMLDivElement>('#app');
   app.append(hero);
+
+  const devPanel = buildDeveloperPanel(app, quickRefs, () => updateQuickPreview(quickRefs, hubRefs));
 
   quickRefs.next.addEventListener('click', () => {
     showStep(quickRefs, 2);
@@ -293,6 +536,7 @@ function buildPreferencesPage(): void {
 
   quickRefs.servings.addEventListener('change', () => {
     state.mealRules.servingsPerRecipe = Number(quickRefs.servings.value);
+    devPanel.syncFromState();
     updateQuickPreview(quickRefs, hubRefs);
   });
 
@@ -462,6 +706,8 @@ function buildPreferencesPage(): void {
       case 'servings':
         renderSingleChips(PRESETS.servings, String(state.mealRules.servingsPerRecipe), (value) => {
           state.mealRules.servingsPerRecipe = Number(value);
+          devPanel.syncFromState();
+          updateQuickPreview(quickRefs, hubRefs);
         });
         break;
       case 'cuisines':
