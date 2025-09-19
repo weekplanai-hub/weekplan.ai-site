@@ -5,7 +5,10 @@
 
 import { DEMO_PROMPT } from './menuDemoPrompt.js';
 
-async function runDemoPrompt() {
+async function runPrompt(promptText) {
+  const prompt = (typeof promptText === 'string' && promptText.trim())
+    ? promptText
+    : DEMO_PROMPT;
   // 1) Prøv OpenRouter direkte hvis nøkkel + modell finnes i localStorage
   try {
     const apiKey = localStorage.getItem('api-key-openrouter') || '';
@@ -31,7 +34,7 @@ async function runDemoPrompt() {
               content:
                 'You are a chef assistant. Reply with ONLY the Weekplan 1000/200x format (lines starting with 1000..1006 for days, 2000 for meal header with B/L/D/S, 2001 title, 2002 recipe block, 2003 shopping block). No extra commentary.'
             },
-            { role: 'user', content: DEMO_PROMPT }
+            { role: 'user', content: prompt }
           ]
         })
       });
@@ -68,4 +71,8 @@ async function runDemoPrompt() {
   ].join('\n');
 }
 
-window.WeekplanBridge = { runDemoPrompt };
+async function runDemoPrompt() {
+  return runPrompt(DEMO_PROMPT);
+}
+
+window.WeekplanBridge = { runPrompt, runDemoPrompt };
